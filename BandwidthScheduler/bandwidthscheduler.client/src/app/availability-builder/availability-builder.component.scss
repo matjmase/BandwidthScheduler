@@ -1,0 +1,31 @@
+@use "@angular/material" as mat;
+@import "../../styles.scss";
+
+$primary: mat.get-color-from-palette(
+  map-get($bandwidthscheduler-client-theme, primary),
+  default
+);
+
+$accent: mat.get-color-from-palette(
+  map-get($bandwidthscheduler-client-theme, accent),
+  default
+);
+
+.card-clickable {
+  background-color: whitesmoke;
+  border: solid black 0.2px;
+}
+
+.card-clickable:hover {
+  background-color: $accent;
+}
+
+:host ::ng-deep .mat-button-toggle-checked {
+  background-color: $primary !important;
+  color: white !important;
+}
+
+.divider-spacer {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}

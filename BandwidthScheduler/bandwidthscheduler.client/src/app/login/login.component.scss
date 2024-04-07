@@ -1,0 +1,17 @@
+.card-container {
+  display: flex;
+  flex-direction: row;
+}
+
+.form-card {
+  flex-shrink: 1;
+  margin: 2rem auto;
+}
+
+.form-item {
+  display: block;
+}
+
+.wide-button {
+  width: 100%;
+}

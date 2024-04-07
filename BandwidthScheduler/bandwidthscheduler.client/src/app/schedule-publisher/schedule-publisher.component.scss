@@ -1,0 +1,32 @@
+@use "@angular/material" as mat;
+@import "../../styles.scss";
+
+$primary: mat.get-color-from-palette(
+  map-get($bandwidthscheduler-client-theme, primary),
+  default
+);
+
+$accent: mat.get-color-from-palette(
+  map-get($bandwidthscheduler-client-theme, accent),
+  default
+);
+
+.divider-spacer {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.card-clickable {
+  background-color: whitesmoke;
+  border: solid black 0.1px;
+  user-select: none;
+  border-radius: 10%;
+}
+
+.card-clickable-hovered {
+  background-color: $accent;
+}
+
+.card-clickable-selected {
+  background-color: $primary;
+}

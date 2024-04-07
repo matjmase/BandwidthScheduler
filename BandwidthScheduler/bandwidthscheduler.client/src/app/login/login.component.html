@@ -1,0 +1,56 @@
+<div class="card-container">
+  <mat-card class="form-card">
+    <mat-card-title>Login</mat-card-title>
+    <mat-card-content>
+      <form
+        #loginForm="ngForm"
+        (ngSubmit)="Submit(loginForm)"
+        appRegisterFormValidator
+      >
+        <mat-form-field class="form-item">
+          <mat-label>Email</mat-label>
+          <mat-icon matPrefix>email</mat-icon>
+          <input
+            name="email"
+            id="email"
+            ngModel
+            type="email"
+            matInput
+            required
+            placeholder="Ex. pat@example.com"
+          />
+        </mat-form-field>
+
+        <mat-form-field class="form-item">
+          <mat-label>Password</mat-label>
+          <mat-icon matPrefix>password</mat-icon>
+          <input
+            name="password"
+            id="password"
+            ngModel
+            type="password"
+            matInput
+            required
+          />
+        </mat-form-field>
+        <button
+          type="submit"
+          class="wide-button"
+          mat-raised-button
+          color="primary"
+        >
+          Submit!
+        </button>
+
+        <mat-error
+          *ngIf="loginForm.submitted && loginForm.errors?.['EmptyEmail']"
+          >Email is <strong>required</strong></mat-error
+        >
+        <mat-error
+          *ngIf="loginForm.submitted && loginForm.errors?.['EmptyPassword']"
+          >Password is <strong>empty</strong></mat-error
+        >
+      </form>
+    </mat-card-content></mat-card
+  >
+</div>

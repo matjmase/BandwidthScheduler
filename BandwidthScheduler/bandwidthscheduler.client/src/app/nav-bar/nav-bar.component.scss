@@ -1,0 +1,28 @@
+@use "@angular/material" as mat;
+@import "../../styles.scss";
+
+$primary: mat.get-color-from-palette(
+  map-get($bandwidthscheduler-client-theme, primary),
+  default
+);
+
+.home-button {
+  font-size: 1.5rem;
+}
+
+.spacer {
+  flex-grow: 1;
+}
+
+.span-holder {
+  display: flex;
+  align-items: center;
+}
+
+.primary-expansion-color {
+  background-color: $primary;
+}
+
+label {
+  cursor: pointer;
+}

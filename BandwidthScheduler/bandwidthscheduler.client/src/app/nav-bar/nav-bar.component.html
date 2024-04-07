@@ -1,0 +1,96 @@
+<mat-toolbar color="primary">
+  <button *appAuthenticate="true" mat-icon-button (click)="ToggleExpand()">
+    <mat-icon>menu</mat-icon>
+  </button>
+
+  <button
+    mat-button
+    class="home-button"
+    (click)="SubMenuNavigationClick('/home')"
+  >
+    Bandwidth Scheduler
+  </button>
+
+  <span class="spacer"></span>
+
+  <span *appAuthenticate="false" class="span-holder">
+    <button
+      id="login-button"
+      mat-icon-button
+      aria-label="Example icon-button with share icon"
+      (click)="SubMenuNavigationClick('/login')"
+    >
+      <mat-icon>login</mat-icon>
+    </button>
+    <label for="login-button"> Login </label>
+  </span>
+
+  <span *appAuthenticate="false" class="span-holder">
+    <button
+      id="register-button"
+      mat-icon-button
+      aria-label="Example icon-button with share icon"
+      (click)="SubMenuNavigationClick('/register')"
+    >
+      <mat-icon>app_registration</mat-icon>
+    </button>
+    <label for="register-button"> Register </label>
+  </span>
+
+  <span *appAuthenticate="true" class="span-holder">
+    <button
+      id="logout-button"
+      mat-icon-button
+      aria-label="Example icon-button with share icon"
+      (click)="LogoutClicked()"
+    >
+      <mat-icon>logout</mat-icon>
+    </button>
+    <label for="logout-button"> Logout </label>
+  </span>
+</mat-toolbar>
+<mat-expansion-panel class="primary-expansion-color" [expanded]="isExpanded">
+  <mat-toolbar color="primary" *appAuthorize="'Scheduler'">
+    <button
+      id="staff-builder-button"
+      mat-icon-button
+      (click)="SubMenuNavigationClick('/staff')"
+    >
+      <mat-icon>people</mat-icon>
+    </button>
+    <label for="staff-builder-button"> Staff Builder </label>
+  </mat-toolbar>
+
+  <mat-toolbar color="primary" *appAuthorize="'User'">
+    <button
+      id="availability-builder-button"
+      mat-icon-button
+      (click)="SubMenuNavigationClick('availability')"
+    >
+      <mat-icon>access_time_filled</mat-icon>
+    </button>
+    <label for="availability-builder-button"> Availability Builder </label>
+  </mat-toolbar>
+
+  <mat-toolbar color="primary" *appAuthorize="'Scheduler'">
+    <button
+      id="schedule-publisher-button"
+      mat-icon-button
+      (click)="SubMenuNavigationClick('/publisher')"
+    >
+      <mat-icon>schedule_send</mat-icon>
+    </button>
+    <label for="schedule-publisher-button"> Schedule Publisher </label>
+  </mat-toolbar>
+
+  <mat-toolbar color="primary">
+    <button
+      id="schedule-history-button"
+      mat-icon-button
+      (click)="SubMenuNavigationClick('/history')"
+    >
+      <mat-icon>work_history</mat-icon>
+    </button>
+    <label for="schedule-history-button"> Schedule and History </label>
+  </mat-toolbar>
+</mat-expansion-panel>
