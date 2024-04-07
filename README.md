@@ -26,7 +26,7 @@ _When there are more users than slots, the algorithm will also choose pseudo ran
 
 ## Future Development
 
-User weighting/priority for getting the shifts.<br />
+User weighting/priority for assigning the shifts.<br />
 Team building page.<br />
 Published schedule viewing.<br />
 User notifications for published dates.<br />
