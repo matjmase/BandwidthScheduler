@@ -14,7 +14,7 @@ namespace BandwidthScheduler.Server.Test
 
         private int _totalEmployees;
 
-        private ScheduleProposalRequest[] _schedule;
+        private ScheduleProposal[] _schedule;
 
         private int _numberOfUsers = 10;
 
@@ -30,10 +30,10 @@ namespace BandwidthScheduler.Server.Test
 
             _totalEmployees = 7;
 
-            var schedule = new List<ScheduleProposalRequest>(); 
+            var schedule = new List<ScheduleProposal>(); 
             for (var i = _startTime; i < _endTime; i = i.AddMinutes(_timeDiffMinutes))
             {
-                schedule.Add(new ScheduleProposalRequest()
+                schedule.Add(new ScheduleProposal()
                 {
                     StartTime = i,
                     EndTime = i.AddMinutes(_timeDiffMinutes),
@@ -46,7 +46,7 @@ namespace BandwidthScheduler.Server.Test
             var applicabilities = new List<UserApplicabilityTestingModel>();
             for (var i = _startTime; i < _endTime; i = i.AddMinutes(_timeDiffMinutes))
             {
-                schedule.Add(new ScheduleProposalRequest()
+                schedule.Add(new ScheduleProposal()
                 {
                     StartTime = i,
                     EndTime = i.AddMinutes(_timeDiffMinutes),
@@ -147,7 +147,7 @@ namespace BandwidthScheduler.Server.Test
                 scopedHasNext = scopedEnum.MoveNext();
             };
 
-            Action<ScheduleProposalRequest> incrementWindow = (ScheduleProposalRequest req) =>
+            Action<ScheduleProposal> incrementWindow = (ScheduleProposal req) =>
             {
                 // Update heap
                 while (!currHeap.IsEmpty() && currHeap.Peek().EndTime < req.EndTime)

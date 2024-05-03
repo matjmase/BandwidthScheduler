@@ -121,7 +121,8 @@ namespace BandwidthScheduler.Server.Controllers
             var sortedStarts = streaks.Values.SelectMany(e => e).OrderBy(e => e.StartTime);
 
             var endTimesHeap = new DictionaryHeap<Availability>((f, s) => f.EndTime < s.EndTime);
-            var usersInHeap = new HashSet<Availability>();
+            var usersInHeap = new Dictionary<int, Availability>();
+            var usersInHeapButNotSelected = new HashSet<Availability>();
 
             var usersSelected = new HashSet<ScheduleProposalResponse>();
             var userIdsSelected = new Dictionary<int, ScheduleProposalResponse>();
@@ -146,13 +147,14 @@ namespace BandwidthScheduler.Server.Controllers
                     if (currStart.StartTime <= currWindow.StartTime)
                     {
                         endTimesHeap.Add(currStart);
-                        usersInHeap.Add(currStart);
+                        usersInHeap.Add(currStart.UserId, currStart);
+                        usersInHeapButNotSelected.Add(currStart);
 
                         startHasNext = startEnumerator.MoveNext();
                     }
                     else
                     {
-                        ProcessTimeWIndow(currWindow, ref endTimesHeap, ref usersInHeap, ref usersSelected, ref userIdsSelected, ref output);
+                        ProcessTimeWIndow(currWindow, ref endTimesHeap, ref usersInHeap, ref usersInHeapButNotSelected, ref usersSelected, ref userIdsSelected, ref output);
 
                         lastWindowTime = currWindow.EndTime;
                         windowHasNext = windowEnumerator.MoveNext();
@@ -162,7 +164,7 @@ namespace BandwidthScheduler.Server.Controllers
                 {
                     var currWindow = windowEnumerator.Current;
 
-                    ProcessTimeWIndow(currWindow, ref endTimesHeap, ref usersInHeap, ref usersSelected, ref userIdsSelected, ref output);
+                    ProcessTimeWIndow(currWindow, ref endTimesHeap, ref usersInHeap, ref usersInHeapButNotSelected, ref usersSelected, ref userIdsSelected, ref output);
 
                     lastWindowTime = currWindow.EndTime;
                     windowHasNext = windowEnumerator.MoveNext();
@@ -186,7 +188,7 @@ namespace BandwidthScheduler.Server.Controllers
         }
 
         [NonAction]
-        public static void ProcessTimeWIndow(ScheduleProposal currWindow, ref DictionaryHeap<Availability> endTimes, ref HashSet<Availability> usersInHeap, ref HashSet<ScheduleProposalResponse> usersSelected, ref Dictionary<int, ScheduleProposalResponse> userIdsSelected, ref HashSet<ScheduleProposalResponse> output)
+        public static void ProcessTimeWIndow(ScheduleProposal currWindow, ref DictionaryHeap<Availability> endTimes, ref Dictionary<int, Availability> usersInHeap, ref HashSet<Availability> usersInHeapButNotSelected, ref HashSet<ScheduleProposalResponse> usersSelected, ref Dictionary<int, ScheduleProposalResponse> userIdsSelected, ref HashSet<ScheduleProposalResponse> output)
         {
             // remove excess
             if (usersSelected.Count > currWindow.Employees)
@@ -196,6 +198,9 @@ namespace BandwidthScheduler.Server.Controllers
                     var random = usersSelected.First();
                     usersSelected.Remove(random);
                     userIdsSelected.Remove(random.UserId);
+
+                    var avail = usersInHeap[random.UserId];
+                    usersInHeapButNotSelected.Add(avail);
 
                     random.EndTime = currWindow.StartTime;
 
@@ -210,7 +215,9 @@ namespace BandwidthScheduler.Server.Controllers
             {
                 // clean heap
                 var popedUser = endTimes.Pop();
-                usersInHeap.Remove(popedUser);
+                usersInHeap.Remove(popedUser.UserId);
+                usersInHeapButNotSelected.Remove(popedUser);
+
                 if (userIdsSelected.ContainsKey(popedUser.UserId))
                 {
                     var remove = userIdsSelected[popedUser.UserId];
@@ -225,48 +232,41 @@ namespace BandwidthScheduler.Server.Controllers
                 // on change (don't prematurely add)
                 if (currentTime != popedUser.EndTime)
                 {
-                    AddUsersFromHeap(currWindow, currentTime, ref usersInHeap, ref usersSelected, ref userIdsSelected);
+                    AddUsersFromHeap(currWindow, currentTime, ref usersInHeap, ref usersInHeapButNotSelected, ref usersSelected, ref userIdsSelected);
                 }
 
                 currentTime = popedUser.EndTime;
             }
 
             // last add
-            AddUsersFromHeap(currWindow, currentTime, ref usersInHeap, ref usersSelected, ref userIdsSelected);
+            AddUsersFromHeap(currWindow, currentTime, ref usersInHeap, ref usersInHeapButNotSelected, ref usersSelected, ref userIdsSelected);
         }
 
         [NonAction]
-        public static void AddUsersFromHeap(ScheduleProposal currWindow, DateTime currentTime, ref HashSet<Availability> usersInHeap, ref HashSet<ScheduleProposalResponse> usersSelected, ref Dictionary<int, ScheduleProposalResponse> userIdsSelected)
+        public static void AddUsersFromHeap(ScheduleProposal currWindow, DateTime currentTime, ref Dictionary<int, Availability> usersInHeap, ref HashSet<Availability> usersInHeapButNotSelected, ref HashSet<ScheduleProposalResponse> usersSelected, ref Dictionary<int, ScheduleProposalResponse> userIdsSelected)
         {
             if (usersSelected.Count < currWindow.Employees && usersSelected.Count < usersInHeap.Count) // less
             {
                 // add
                 var amountToAdd = currWindow.Employees - usersSelected.Count;
 
-                var toAddList = new List<Availability>();
-
-                foreach (var user in usersInHeap)
+                while (amountToAdd > 0 && usersInHeapButNotSelected.Count != 0)
                 {
-                    if (!userIdsSelected.ContainsKey(user.UserId))
-                    {
-                        toAddList.Add(user);
-                    }
-                }
+                    var random = usersInHeapButNotSelected.First();
+                    usersInHeapButNotSelected.Remove(random);
 
-                var toAdd = toAddList.ToArray();
-
-                for (var i = 0; i < amountToAdd && i < toAdd.Length; i++)
-                {
                     var response = new ScheduleProposalResponse()
                     {
-                        Email = toAdd[i].User.Email,
+                        Email = random.User.Email,
                         StartTime = currentTime,
-                        EndTime = toAdd[i].EndTime,
-                        UserId = toAdd[i].UserId,
+                        EndTime = random.EndTime,
+                        UserId = random.UserId,
                     };
 
                     usersSelected.Add(response);
                     userIdsSelected.Add(response.UserId, response);
+
+                    amountToAdd--;
                 }
             }
         }
