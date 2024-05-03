@@ -19,7 +19,19 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[Commitment]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[Password]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Proposal]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Team]",
          "ObjectType": 0
       },
       {
@@ -28,6 +40,10 @@
       },
       {
          "Name": "[dbo].[UserRole]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[UserTeam]",
          "ObjectType": 0
       }
    ],
@@ -43,7 +59,7 @@
    "UseHierarchyId": false,
    "UseInflector": true,
    "UseLegacyPluralizer": false,
-   "UseManyToManyEntity": false,
+   "UseManyToManyEntity": true,
    "UseNoDefaultConstructor": false,
    "UseNoNavigations": false,
    "UseNoObjectFilter": false,

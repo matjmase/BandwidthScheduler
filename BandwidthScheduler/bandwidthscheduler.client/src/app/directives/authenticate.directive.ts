@@ -1,11 +1,18 @@
-import { Directive, Input, TemplateRef, ViewContainerRef } from '@angular/core';
+import {
+  Directive,
+  Input,
+  OnDestroy,
+  OnInit,
+  TemplateRef,
+  ViewContainerRef,
+} from '@angular/core';
 import { Subscription } from 'rxjs';
 import { BackendConnectService } from '../services/backend-connect.service';
 
 @Directive({
   selector: '[appAuthenticate]',
 })
-export class AuthenticateDirective {
+export class AuthenticateDirective implements OnInit, OnDestroy {
   @Input() appAuthenticate = true;
 
   sub: Subscription | undefined;

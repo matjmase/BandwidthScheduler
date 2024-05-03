@@ -1,6 +1,7 @@
 ﻿using BandwidthScheduler.Server.Common.Static;
 using BandwidthScheduler.Server.DbModels;
 using BandwidthScheduler.Server.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,7 @@ namespace BandwidthScheduler.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class AvailabilityController : ControllerBase
     {
         private IConfiguration _config;
@@ -29,11 +31,6 @@ namespace BandwidthScheduler.Server.Controllers
         {
             var date = DayRequested.ToUniversalTime();
             var current = DbModelFunction.GetCurrentUser(HttpContext);
-
-            if (current == null)
-            {
-                return BadRequest("User could not be found");
-            }
 
             var availabilities = await Compare24Hours(_db.Availabilities, current.Id, date).ToArrayAsync();
             availabilities = availabilities.Select(e => new Availability()
@@ -53,11 +50,6 @@ namespace BandwidthScheduler.Server.Controllers
         {
             var date = request.DayRequested;
             var current = DbModelFunction.GetCurrentUser(HttpContext);
-
-            if (current == null)
-            {
-                return BadRequest("User could not be found");
-            }
 
             for (var i = 0; i < request.Times.Length; i++)
             {

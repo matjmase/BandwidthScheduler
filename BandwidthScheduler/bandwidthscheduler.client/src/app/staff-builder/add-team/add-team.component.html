@@ -1,0 +1,22 @@
+<mat-card class="form-card">
+  <mat-card-title>Add Team</mat-card-title>
+  <mat-card-content>
+    <form #addTeamForm="ngForm" (ngSubmit)="AddTeamSubmit(addTeamForm)">
+      <mat-form-field class="form-item">
+        <mat-label>Team Name</mat-label>
+        <mat-icon matPrefix>people</mat-icon>
+        <input
+          name="teamName"
+          id="teamName"
+          ngModel
+          type="text"
+          matInput
+          required
+          placeholder="Ex. Angry Ginger Cats"
+        />
+      </mat-form-field>
+
+      <button type="submit" mat-raised-button color="primary">Add!</button>
+    </form>
+  </mat-card-content></mat-card
+>

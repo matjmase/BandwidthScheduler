@@ -1,0 +1,54 @@
+<mat-card>
+  <form #schedulingForm="ngForm" (ngSubmit)="Submit(schedulingForm)">
+    <div>
+      <mat-form-field>
+        <mat-label>Choose a date</mat-label>
+        <input
+          id="date"
+          name="date"
+          required
+          ngModel
+          matInput
+          [matDatepicker]="datepicker"
+        />
+        <mat-hint>MM/DD/YYYY</mat-hint>
+        <mat-datepicker-toggle
+          matIconSuffix
+          [for]="datepicker"
+        ></mat-datepicker-toggle>
+        <mat-datepicker #datepicker>
+          <mat-datepicker-actions>
+            <button mat-button matDatepickerCancel>Cancel</button>
+            <button mat-raised-button color="primary" matDatepickerApply>
+              Apply
+            </button>
+          </mat-datepicker-actions>
+        </mat-datepicker>
+      </mat-form-field>
+      <mat-form-field class="example-full-width">
+        <mat-label>Max Employees</mat-label>
+        <mat-icon matPrefix>numbers</mat-icon>
+        <input
+          id="maxEmployees"
+          name="maxEmployees"
+          type="number"
+          max="20"
+          min="1"
+          matInput
+          required
+          ngModel
+        />
+        <mat-hint>Max 20</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <button
+      mat-stroked-button
+      color="primary"
+      type="submit"
+      [disabled]="!schedulingForm.valid"
+    >
+      Render
+    </button>
+  </form>
+</mat-card>

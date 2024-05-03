@@ -1,6 +1,7 @@
 ﻿using BandwidthScheduler.Server.Common.DataStructures;
 using BandwidthScheduler.Server.DbModels;
 using BandwidthScheduler.Server.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ namespace BandwidthScheduler.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class PublishController : ControllerBase
     {
         private IConfiguration _config;
@@ -23,17 +25,18 @@ namespace BandwidthScheduler.Server.Controllers
         }
 
         [HttpPost("proposal")]
-        public async Task<IActionResult> Proposal([FromBody] ScheduleProposalRequest[] proposalRequest)
+        [Authorize(Roles = "Scheduler")]
+        public async Task<IActionResult> Proposal([FromBody] ScheduleProposalRequest proposalRequest)
         { 
-            if(proposalRequest == null || proposalRequest.Length == 0)
+            if(proposalRequest == null || proposalRequest.Proposal.Length == 0 || proposalRequest.SelectedTeam == null)
             {
                 return BadRequest("Invalid Proposal");
             }
 
-            var start = proposalRequest[0].StartTime.ToUniversalTime();
-            var end = proposalRequest[proposalRequest.Length - 1].EndTime.ToUniversalTime();
+            var start = proposalRequest.Proposal[0].StartTime.ToUniversalTime();
+            var end = proposalRequest.Proposal[proposalRequest.Proposal.Length - 1].EndTime.ToUniversalTime();
 
-            var totalApplicable = await _db.Availabilities.Where(e => e.StartTime >= start && e.EndTime <= end).OrderBy(e => e.StartTime).Include(e => e.User).ToArrayAsync();
+            var totalApplicable = await _db.Teams.Where(e => e.Id == proposalRequest.SelectedTeam.Id).Include(e => e.UserTeams).ThenInclude(e => e.User).ThenInclude(e => e.Availabilities).ThenInclude(e => e.User).SelectMany(e => e.UserTeams).Select(e => e.User).SelectMany(e => e.Availabilities).Where(e => e.StartTime >= start && e.EndTime <= end).OrderBy(e => e.StartTime).ToArrayAsync();
             totalApplicable = totalApplicable.Select(e =>
             new Availability()
             {
@@ -57,7 +60,7 @@ namespace BandwidthScheduler.Server.Controllers
 
             var streaks = CreateStreaks(applicableUsers);
 
-            var output = ScopeStreakToWindow(streaks, proposalRequest);
+            var output = ScopeStreakToWindow(streaks, proposalRequest.Proposal);
 
             return Ok(output);
         }
@@ -112,7 +115,7 @@ namespace BandwidthScheduler.Server.Controllers
         /// <param name="window"></param>
         /// <returns></returns>
         [NonAction]
-        public static HashSet<ScheduleProposalResponse> ScopeStreakToWindow(Dictionary<int, List<Availability>> streaks, ScheduleProposalRequest[] window)
+        public static HashSet<ScheduleProposalResponse> ScopeStreakToWindow(Dictionary<int, List<Availability>> streaks, ScheduleProposal[] window)
         {
 
             var sortedStarts = streaks.Values.SelectMany(e => e).OrderBy(e => e.StartTime);
@@ -126,7 +129,7 @@ namespace BandwidthScheduler.Server.Controllers
             var output = new HashSet<ScheduleProposalResponse>();
 
             var startEnumerator = sortedStarts.GetEnumerator();
-            var windowEnumerator = ((IEnumerable<ScheduleProposalRequest>)window).GetEnumerator();
+            var windowEnumerator = ((IEnumerable<ScheduleProposal>)window).GetEnumerator();
 
             var startHasNext = startEnumerator.MoveNext();
             var windowHasNext = windowEnumerator.MoveNext();
@@ -183,7 +186,7 @@ namespace BandwidthScheduler.Server.Controllers
         }
 
         [NonAction]
-        public static void ProcessTimeWIndow(ScheduleProposalRequest currWindow, ref DictionaryHeap<Availability> endTimes, ref HashSet<Availability> usersInHeap, ref HashSet<ScheduleProposalResponse> usersSelected, ref Dictionary<int, ScheduleProposalResponse> userIdsSelected, ref HashSet<ScheduleProposalResponse> output)
+        public static void ProcessTimeWIndow(ScheduleProposal currWindow, ref DictionaryHeap<Availability> endTimes, ref HashSet<Availability> usersInHeap, ref HashSet<ScheduleProposalResponse> usersSelected, ref Dictionary<int, ScheduleProposalResponse> userIdsSelected, ref HashSet<ScheduleProposalResponse> output)
         {
             // remove excess
             if (usersSelected.Count > currWindow.Employees)
@@ -233,7 +236,7 @@ namespace BandwidthScheduler.Server.Controllers
         }
 
         [NonAction]
-        public static void AddUsersFromHeap(ScheduleProposalRequest currWindow, DateTime currentTime, ref HashSet<Availability> usersInHeap, ref HashSet<ScheduleProposalResponse> usersSelected, ref Dictionary<int, ScheduleProposalResponse> userIdsSelected)
+        public static void AddUsersFromHeap(ScheduleProposal currWindow, DateTime currentTime, ref HashSet<Availability> usersInHeap, ref HashSet<ScheduleProposalResponse> usersSelected, ref Dictionary<int, ScheduleProposalResponse> userIdsSelected)
         {
             if (usersSelected.Count < currWindow.Employees && usersSelected.Count < usersInHeap.Count) // less
             {

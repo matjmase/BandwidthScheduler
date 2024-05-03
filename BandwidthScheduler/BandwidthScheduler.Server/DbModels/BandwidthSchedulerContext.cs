@@ -15,11 +15,19 @@ public partial class BandwidthSchedulerContext : DbContext
 
     public virtual DbSet<Availability> Availabilities { get; set; }
 
+    public virtual DbSet<Commitment> Commitments { get; set; }
+
     public virtual DbSet<Password> Passwords { get; set; }
+
+    public virtual DbSet<Proposal> Proposals { get; set; }
+
+    public virtual DbSet<Team> Teams { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<UserRole> UserRoles { get; set; }
+
+    public virtual DbSet<UserTeam> UserTeams { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -34,6 +42,24 @@ public partial class BandwidthSchedulerContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Availability_User");
+        });
+
+        modelBuilder.Entity<Commitment>(entity =>
+        {
+            entity.ToTable("Commitment");
+
+            entity.Property(e => e.EndTime).HasColumnType("datetime");
+            entity.Property(e => e.StartTime).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Team).WithMany(p => p.Commitments)
+                .HasForeignKey(d => d.TeamId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Commitment_Team");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Commitments)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Commitment_User");
         });
 
         modelBuilder.Entity<Password>(entity =>
@@ -58,6 +84,29 @@ public partial class BandwidthSchedulerContext : DbContext
                 .HasConstraintName("FK_Password_User");
         });
 
+        modelBuilder.Entity<Proposal>(entity =>
+        {
+            entity.ToTable("Proposal");
+
+            entity.Property(e => e.EndTime).HasColumnType("datetime");
+            entity.Property(e => e.StartTime).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Team).WithMany(p => p.Proposals)
+                .HasForeignKey(d => d.TeamId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Proposal_Team");
+        });
+
+        modelBuilder.Entity<Team>(entity =>
+        {
+            entity.ToTable("Team");
+
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(80)
+                .IsUnicode(false);
+        });
+
         modelBuilder.Entity<User>(entity =>
         {
             entity.ToTable("User");
@@ -78,6 +127,23 @@ public partial class BandwidthSchedulerContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_UserRole_User");
+        });
+
+        modelBuilder.Entity<UserTeam>(entity =>
+        {
+            entity.HasKey(e => new { e.UserId, e.TeamId });
+
+            entity.ToTable("UserTeam");
+
+            entity.HasOne(d => d.Team).WithMany(p => p.UserTeams)
+                .HasForeignKey(d => d.TeamId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UserTeam_Team");
+
+            entity.HasOne(d => d.User).WithMany(p => p.UserTeams)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UserTeam_User");
         });
 
         OnModelCreatingPartial(modelBuilder);

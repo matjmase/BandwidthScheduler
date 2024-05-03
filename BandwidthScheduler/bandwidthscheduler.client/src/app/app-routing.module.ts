@@ -39,7 +39,7 @@ const routes: Routes = [
       {
         path: 'staff',
         canActivate: [authorizeGuard],
-        data: { roles: ['Scheduler'] },
+        data: { roles: ['Administrator'] },
         component: StaffBuilderComponent,
       },
       {

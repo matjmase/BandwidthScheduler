@@ -1,1 +1,16 @@
-<p>staff-builder works!</p>
+<h3>Build Team</h3>
+
+<mat-divider></mat-divider>
+
+<app-add-team (TeamAdded)="TeamAdded()"></app-add-team>
+
+<mat-divider></mat-divider>
+
+<app-team-selector
+  #teamSelector
+  (TeamSelected)="TeamSelected($event)"
+></app-team-selector>
+
+<mat-divider></mat-divider>
+
+<app-add-remove-team-user [DbTeam]="dbTeamSelected"></app-add-remove-team-user>

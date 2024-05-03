@@ -1,0 +1,46 @@
+<div class="legend-left">
+  <mat-list class="card-margin">
+    <h3>Legend</h3>
+    <mat-list-item>
+      <div class="flex-row-center">
+        <div [appColorElement]="ColoredFramesClear" class="legend-color-bubble">
+          &nbsp;
+        </div>
+        <span>Clear</span>
+      </div></mat-list-item
+    >
+
+    <mat-list-item>
+      <div class="flex-row-center">
+        <div
+          [appColorElement]="ColoredFramesDeficit"
+          class="legend-color-bubble"
+        >
+          &nbsp;
+        </div>
+        <span>Shortage</span>
+      </div></mat-list-item
+    >
+
+    <mat-list-item *ngFor="let kv of ColorDict | keyvalue">
+      <div class="flex-row-center">
+        <div [appColorElement]="kv.value" class="legend-color-bubble">
+          &nbsp;
+        </div>
+        <span>{{ kv.key }}</span>
+      </div></mat-list-item
+    >
+  </mat-list>
+</div>
+
+<div class="flex-row-scroll">
+  <div class="flex-column" *ngFor="let coloredFrame of ColoredFrames">
+    <mat-card class="padded-card">
+      {{ coloredFrame.StartTime | date : "hh:mm aa" }}
+    </mat-card>
+
+    <div *ngFor="let color of coloredFrame.Color.reverse(); let i = index">
+      <div class="card-clickable" [appColorElement]="color">&nbsp;</div>
+    </div>
+  </div>
+</div>

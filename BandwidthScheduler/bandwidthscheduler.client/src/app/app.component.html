@@ -1,3 +1,9 @@
 ﻿<app-nav-bar></app-nav-bar>
 
-<router-outlet></router-outlet>
+<div style="display: flex; flex-direction: row">
+  <div class="side-bar"></div>
+  <div class="main-content">
+    <router-outlet></router-outlet>
+  </div>
+  <div class="side-bar"></div>
+</div>

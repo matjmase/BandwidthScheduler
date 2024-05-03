@@ -5,7 +5,7 @@ import {
 } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -40,6 +40,15 @@ import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { TeamSelectorComponent } from './commonControls/team-selector/team-selector.component';
+import { AddRemoveTeamUserComponent } from './staff-builder/add-remove-team-user/add-remove-team-user.component';
+import { AddTeamComponent } from './staff-builder/add-team/add-team.component';
+import { GridRenderingFormComponent } from './schedule-publisher/grid-rendering-form/grid-rendering-form.component';
+import { GridRenderingProposalComponent } from './schedule-publisher/grid-rendering-proposal/grid-rendering-proposal.component';
+import { GridRenderingGeneratedComponent } from './schedule-publisher/grid-rendering-generated/grid-rendering-generated.component';
+import { ColorElementDirective } from './directives/color-element.directive';
 
 @NgModule({
   declarations: [
@@ -56,12 +65,20 @@ import { MatListModule } from '@angular/material/list';
     SchedulePublisherComponent,
     ScheduleHistoryComponent,
     AuthorizeDirective,
+    TeamSelectorComponent,
+    AddRemoveTeamUserComponent,
+    AddTeamComponent,
+    GridRenderingFormComponent,
+    GridRenderingProposalComponent,
+    GridRenderingGeneratedComponent,
+    ColorElementDirective,
   ],
   imports: [
     BrowserModule,
     HttpClientModule,
     AppRoutingModule,
     FormsModule,
+    ReactiveFormsModule,
     BrowserAnimationsModule,
     MatToolbarModule,
     MatIconModule,
@@ -78,6 +95,8 @@ import { MatListModule } from '@angular/material/list';
     MatButtonToggleModule,
     MatDividerModule,
     MatListModule,
+    MatAutocompleteModule,
+    MatSnackBarModule,
   ],
   providers: [
     provideAnimationsAsync(),

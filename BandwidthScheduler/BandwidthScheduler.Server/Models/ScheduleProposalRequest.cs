@@ -1,9 +1,10 @@
-﻿namespace BandwidthScheduler.Server.Models
+﻿using BandwidthScheduler.Server.DbModels;
+
+namespace BandwidthScheduler.Server.Models
 {
     public class ScheduleProposalRequest
     {
-        public DateTime StartTime { get; set; }
-        public DateTime EndTime { get; set; }
-        public int Employees { get; set; }
+        public Team SelectedTeam { get; set; }
+        public ScheduleProposal[] Proposal { get; set; }
     }
 }

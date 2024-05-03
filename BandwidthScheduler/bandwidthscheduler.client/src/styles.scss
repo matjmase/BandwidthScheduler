@@ -53,4 +53,11 @@ body {
 }
 
 /* Importing Bootstrap SCSS file. */
-@import 'bootstrap/scss/bootstrap';
+@import "bootstrap/scss/bootstrap";
+
+// Custom Styles
+
+.mat-divider {
+  margin-top: 2rem !important;
+  margin-bottom: 2rem !important;
+}

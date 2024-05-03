@@ -1,5 +1,5 @@
 <h3>Choose Availability</h3>
-<mat-divider class="divider-spacer"></mat-divider>
+<mat-divider></mat-divider>
 <div style="text-align: center">
   <mat-form-field class="example-form-field">
     <mat-label>Choose a date</mat-label>
@@ -24,23 +24,22 @@
   </div>
 
   <div *ngIf="currentAvailableModels.length !== 0">
-    <mat-divider class="divider-spacer"></mat-divider>
+    <mat-divider></mat-divider>
 
     <div>
-      <div *ngFor="let model of currentAvailableModels">
-        <mat-button-toggle
-          class="card-clickable"
-          [checked]="model.isSelected"
-          (change)="model.isSelected = $event.source.checked"
-        >
-          {{ model.startTime | date : "hh:mm aa" }}
-          -
-          {{ model.endTime | date : "hh:mm aa" }}
-        </mat-button-toggle>
-      </div>
+      <mat-button-toggle
+        *ngFor="let model of currentAvailableModels"
+        class="card-clickable"
+        [checked]="model.isSelected"
+        (change)="model.isSelected = $event.source.checked"
+      >
+        {{ model.startTime | date : "hh:mm aa" }}
+        -
+        {{ model.endTime | date : "hh:mm aa" }}
+      </mat-button-toggle>
     </div>
 
-    <mat-divider class="divider-spacer"></mat-divider>
+    <mat-divider></mat-divider>
 
     <div>
       <button (click)="OnSubmit()" mat-stroked-button color="primary">

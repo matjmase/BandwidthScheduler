@@ -51,7 +51,7 @@ namespace BandwidthScheduler.Server.Common.Static
             };
         }
 
-        public static User? GetCurrentUser(HttpContext context)
+        public static User GetCurrentUser(HttpContext context)
         {
             var identity = context.User.Identity as ClaimsIdentity;
 
@@ -65,7 +65,7 @@ namespace BandwidthScheduler.Server.Common.Static
                     Email = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Email)?.Value,
                 };
             }
-            return null;
+            throw new ArgumentException("User identity could not be retrieved.");
         }
 
     }

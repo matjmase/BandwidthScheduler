@@ -4,5 +4,6 @@
     {
         User,
         Scheduler,
+        Administrator
     }
 }

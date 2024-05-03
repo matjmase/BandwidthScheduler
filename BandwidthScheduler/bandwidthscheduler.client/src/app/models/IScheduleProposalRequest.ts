@@ -1,5 +1,7 @@
+import { IScheduleProposal } from './IScheduleProposal';
+import { ITeam } from './ITeam';
+
 export interface IScheduleProposalRequest {
-  startTime: Date;
-  endTime: Date;
-  employees: number;
+  selectedTeam: ITeam;
+  proposal: IScheduleProposal[];
 }
