@@ -2,67 +2,59 @@
   [stretch]="SpinnerCardStretch"
   [spinnerActive]="WaitingOnSubmit"
   [ngClass]="{ 'card-disabled': !DbTeam }"
-  style="padding: 1rem; width: 100%"
 >
   <mat-card-title> Add/Remove Team Members </mat-card-title>
-  <div class="flex-row" [inert]="WaitingOnSubmit">
-    <mat-card class="grow-column-height">
-      <mat-selection-list>
-        <mat-list-option
-          *ngFor="let user of DbNotSelectedUsers"
-          (selectedChange)="user.IsSelected = $event"
-          [selected]="user.IsSelected"
-        >
-          {{ user.Value.email }}
-        </mat-list-option>
-        <mat-list-option
-          class="selected-change-items"
-          *ngFor="let user of UserToRemoveChange"
-          (selectedChange)="user.IsSelected = $event"
-          [selected]="user.IsSelected"
-        >
-          {{ user.Value.email }}
-        </mat-list-option>
-      </mat-selection-list>
-    </mat-card>
-    <div class="center-shrink-column">
-      <button mat-stroked-button color="primary" (click)="SelectUsers()">
-        &gt;
-      </button>
-      <button mat-stroked-button color="primary" (click)="UnselectUsers()">
-        &lt;
-      </button>
+  <mat-card-content>
+    <div class="flex-row" [inert]="WaitingOnSubmit">
+      <mat-card class="grow-column-height">
+        <mat-selection-list>
+          <mat-list-option
+            *ngFor="let user of DbNotSelectedUsers"
+            (selectedChange)="user.IsSelected = $event"
+            [selected]="user.IsSelected"
+          >
+            {{ user.Value.email }}
+          </mat-list-option>
+          <mat-list-option
+            class="selected-change-items"
+            *ngFor="let user of UserToRemoveChange"
+            (selectedChange)="user.IsSelected = $event"
+            [selected]="user.IsSelected"
+          >
+            {{ user.Value.email }}
+          </mat-list-option>
+        </mat-selection-list>
+      </mat-card>
+      <div class="center-shrink-column">
+        <button mat-stroked-button color="primary" (click)="SelectUsers()">
+          &gt;
+        </button>
+        <button mat-stroked-button color="primary" (click)="UnselectUsers()">
+          &lt;
+        </button>
+      </div>
+      <mat-card class="grow-column-height">
+        <mat-selection-list>
+          <mat-list-option
+            *ngFor="let user of DbSelectedUsers"
+            (selectedChange)="user.IsSelected = $event"
+            [selected]="user.IsSelected"
+          >
+            {{ user.Value.email }}
+          </mat-list-option>
+          <mat-list-option
+            class="selected-change-items"
+            *ngFor="let user of UserToAddChange"
+            (selectedChange)="user.IsSelected = $event"
+            [selected]="user.IsSelected"
+          >
+            {{ user.Value.email }}
+          </mat-list-option>
+        </mat-selection-list>
+      </mat-card>
     </div>
-    <mat-card class="grow-column-height">
-      <mat-selection-list>
-        <mat-list-option
-          *ngFor="let user of DbSelectedUsers"
-          (selectedChange)="user.IsSelected = $event"
-          [selected]="user.IsSelected"
-        >
-          {{ user.Value.email }}
-        </mat-list-option>
-        <mat-list-option
-          class="selected-change-items"
-          *ngFor="let user of UserToAddChange"
-          (selectedChange)="user.IsSelected = $event"
-          [selected]="user.IsSelected"
-        >
-          {{ user.Value.email }}
-        </mat-list-option>
-      </mat-selection-list>
-    </mat-card>
-  </div>
-  <div class="flex-row">
-    <div class="flex-filler"></div>
-    <button
-      class="flex-shrinker"
-      type="submit"
-      mat-raised-button
-      color="primary"
-      (click)="Submit()"
-    >
+    <button type="submit" mat-raised-button color="primary" (click)="Submit()">
       Submit!
-    </button>
-    <div class="flex-filler"></div></div
-></app-spinner-card>
+    </button></mat-card-content
+  ></app-spinner-card
+>
