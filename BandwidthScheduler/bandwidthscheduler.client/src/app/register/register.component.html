@@ -3,12 +3,12 @@
     <mat-spinner
       class="centered-spinner"
       [ngStyle]="{
-        'display': roles.length === 0 ? 'block' : 'none',
+        'display': !roles || waitingOnSubmit ? 'block' : 'none',
       }"
     ></mat-spinner>
     <div
       [ngClass]="{
-        'form-card-disabled': roles.length === 0
+        'form-card-disabled': !roles || waitingOnSubmit
       }"
     >
       <mat-card-title>Login</mat-card-title>
@@ -17,7 +17,7 @@
           #registerForm="ngForm"
           (ngSubmit)="Submit(registerForm)"
           appRegisterFormValidator
-          [inert]="roles.length === 0"
+          [inert]="!roles || waitingOnSubmit"
         >
           <mat-form-field class="form-item">
             <mat-label>Email</mat-label>

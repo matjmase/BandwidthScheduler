@@ -3,9 +3,22 @@
   flex-direction: row;
 }
 
+.centered-spinner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
 .form-card {
   flex-shrink: 1;
   margin: 2rem auto;
+}
+
+.form-card-disabled {
+  pointer-events: none;
+  opacity: 0.5;
 }
 
 .form-item {
