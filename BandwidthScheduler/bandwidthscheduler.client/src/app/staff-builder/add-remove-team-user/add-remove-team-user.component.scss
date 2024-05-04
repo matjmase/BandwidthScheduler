@@ -3,9 +3,12 @@
   flex-direction: row;
 }
 
-.grow-column-height {
+.grow-column {
   flex-grow: 1;
   flex-basis: 0;
+}
+
+.column-height {
   min-height: 15rem;
   max-height: 15rem;
   overflow-y: auto;
