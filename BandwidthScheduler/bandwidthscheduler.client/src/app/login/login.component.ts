@@ -3,7 +3,7 @@ import { NgForm } from '@angular/forms';
 import { BackendConnectService } from '../services/backend-connect.service';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { StandardSnackbarService } from '../services/standard-snackbar.service';
 
 @Component({
   selector: 'app-login',
@@ -16,7 +16,7 @@ export class LoginComponent {
   constructor(
     private backend: BackendConnectService,
     private router: Router,
-    private messageSnackBar: MatSnackBar
+    private messageSnackBar: StandardSnackbarService
   ) {}
 
   public Submit(form: NgForm): void {
@@ -28,16 +28,10 @@ export class LoginComponent {
         this.waitingOnSubmit = false;
       },
       error: (errorResp: HttpErrorResponse) => {
-        this.openSnackBar(errorResp.error);
+        this.messageSnackBar.OpenErrorMessage(errorResp.error);
         this.waitingOnSubmit = false;
         form.resetForm();
       },
-    });
-  }
-
-  private openSnackBar(message: string): void {
-    this.messageSnackBar.open(message, 'Dismiss', {
-      duration: 1000 * 3,
     });
   }
 }

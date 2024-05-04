@@ -1,0 +1,22 @@
+<div class="card-container">
+  <mat-card
+    [ngClass]="{
+      'form-card-shrink': stretch === 0,
+      'form-card-grow': stretch === 1
+    }"
+  >
+    <mat-spinner
+      class="centered-spinner"
+      [ngStyle]="{
+        'display': spinnerActive ? 'block' : 'none',
+      }"
+    ></mat-spinner>
+    <div
+      [ngClass]="{
+        'form-card-disabled': spinnerActive
+      }"
+    >
+      <ng-content></ng-content>
+    </div>
+  </mat-card>
+</div>

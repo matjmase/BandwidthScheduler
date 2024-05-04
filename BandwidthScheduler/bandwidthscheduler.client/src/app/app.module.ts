@@ -49,6 +49,7 @@ import { GridRenderingFormComponent } from './schedule-publisher/grid-rendering-
 import { GridRenderingProposalComponent } from './schedule-publisher/grid-rendering-proposal/grid-rendering-proposal.component';
 import { GridRenderingGeneratedComponent } from './schedule-publisher/grid-rendering-generated/grid-rendering-generated.component';
 import { ColorElementDirective } from './directives/color-element.directive';
+import { SpinnerCardComponent } from './commonControls/spinner-card/spinner-card.component';
 
 @NgModule({
   declarations: [
@@ -72,6 +73,7 @@ import { ColorElementDirective } from './directives/color-element.directive';
     GridRenderingProposalComponent,
     GridRenderingGeneratedComponent,
     ColorElementDirective,
+    SpinnerCardComponent,
   ],
   imports: [
     BrowserModule,

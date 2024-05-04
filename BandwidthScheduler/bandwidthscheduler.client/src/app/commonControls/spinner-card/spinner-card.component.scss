@@ -1,0 +1,27 @@
+.card-container {
+  display: flex;
+  flex-direction: row;
+}
+
+.form-card-shrink {
+  flex-shrink: 1;
+  margin: 2rem auto;
+}
+
+.form-card-grow {
+  flex-grow: 1;
+  margin: 2rem auto;
+}
+
+.centered-spinner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+.form-card-disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}

@@ -1,11 +1,11 @@
-<mat-card
-  [ngClass]="{
-    'card-disabled': !DbTeam
-  }"
-  style="padding: 1rem"
+<app-spinner-card
+  [stretch]="SpinnerCardStretch"
+  [spinnerActive]="WaitingOnSubmit"
+  [ngClass]="{ 'card-disabled': !DbTeam }"
+  style="padding: 1rem; width: 100%"
 >
   <mat-card-title> Add/Remove Team Members </mat-card-title>
-  <div class="flex-row">
+  <div class="flex-row" [inert]="WaitingOnSubmit">
     <mat-card class="grow-column-height">
       <mat-selection-list>
         <mat-list-option
@@ -64,6 +64,5 @@
     >
       Submit!
     </button>
-    <div class="flex-filler"></div>
-  </div>
-</mat-card>
+    <div class="flex-filler"></div></div
+></app-spinner-card>

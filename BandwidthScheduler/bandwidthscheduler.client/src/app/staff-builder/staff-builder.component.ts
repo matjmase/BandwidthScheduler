@@ -1,10 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormControl, NgForm } from '@angular/forms';
-import { Observable, map, startWith } from 'rxjs';
-import { BackendConnectService } from '../services/backend-connect.service';
 import { ITeam } from '../models/ITeam';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { IAllAndTeamUsers } from '../models/IAllAndTeamUsers';
 import { TeamSelectorComponent } from '../commonControls/team-selector/team-selector.component';
 
 @Component({
@@ -15,8 +10,6 @@ import { TeamSelectorComponent } from '../commonControls/team-selector/team-sele
 export class StaffBuilderComponent {
   @ViewChild('teamSelector')
   teamSelector!: TeamSelectorComponent;
-
-  options: { [key: string]: ITeam } = {};
   dbTeamSelected: ITeam | undefined;
 
   public TeamAdded(): void {

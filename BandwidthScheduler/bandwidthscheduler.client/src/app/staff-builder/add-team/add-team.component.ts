@@ -1,8 +1,9 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { BackendConnectService } from '../../services/backend-connect.service';
-import { ITeam } from '../../models/ITeam';
+import { StandardSnackbarService } from '../../services/standard-snackbar.service';
+import { HttpErrorResponse } from '@angular/common/http';
+import { SpinnerCardHorizontalStretch } from '../../commonControls/spinner-card/spinner-card.component';
 
 @Component({
   selector: 'app-add-team',
@@ -11,28 +12,32 @@ import { ITeam } from '../../models/ITeam';
 })
 export class AddTeamComponent {
   @Output() TeamAdded: EventEmitter<void> = new EventEmitter<void>();
+  waitingOnSubmit: boolean = false;
+  public SpinnerCardStretch: SpinnerCardHorizontalStretch =
+    SpinnerCardHorizontalStretch.Grow;
 
   constructor(
-    private messageSnackBar: MatSnackBar,
+    private messageSnackBar: StandardSnackbarService,
     private backend: BackendConnectService
   ) {}
 
-  private openSnackBar(message: string): void {
-    this.messageSnackBar.open(message, 'Dismiss', {
-      duration: 1000 * 3,
-    });
-  }
-
   public AddTeamSubmit(form: NgForm): void {
+    this.waitingOnSubmit = true;
     const teamName = form.value.teamName;
 
     this.backend.Staff.PostTeam(teamName).subscribe({
       complete: () => {
-        this.openSnackBar('Team - ' + teamName + ' added successfully');
+        this.messageSnackBar.OpenConfirmationMessage(
+          'Team - ' + teamName + ' added successfully'
+        );
         this.TeamAdded.emit();
         form.resetForm();
+        this.waitingOnSubmit = false;
       },
-      error: () => this.openSnackBar('Error adding team'),
+      error: (errorResp: HttpErrorResponse) => {
+        this.messageSnackBar.OpenErrorMessage(errorResp.error);
+        this.waitingOnSubmit = false;
+      },
     });
   }
 }

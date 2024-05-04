@@ -4,6 +4,9 @@ import { IUser } from '../../models/IUser';
 import { SelectableElementWrapper } from './selectable-element-wrapper';
 import { ITeam } from '../../models/ITeam';
 import { BackendConnectService } from '../../services/backend-connect.service';
+import { SpinnerCardHorizontalStretch } from '../../commonControls/spinner-card/spinner-card.component';
+import { StandardSnackbarService } from '../../services/standard-snackbar.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-add-remove-team-user',
@@ -25,6 +28,11 @@ export class AddRemoveTeamUserComponent {
     return this._dbTeam;
   }
 
+  public SpinnerCardStretch: SpinnerCardHorizontalStretch =
+    SpinnerCardHorizontalStretch.Grow;
+
+  public WaitingOnSubmit: boolean = false;
+
   private _dbTeam: ITeam | undefined;
   private _dbTeamUser: IAllAndTeamUsers | undefined;
 
@@ -34,7 +42,10 @@ export class AddRemoveTeamUserComponent {
   public UserToAddChange: SelectableElementWrapper<IUser>[] = [];
   public UserToRemoveChange: SelectableElementWrapper<IUser>[] = [];
 
-  constructor(private backend: BackendConnectService) {}
+  constructor(
+    private backend: BackendConnectService,
+    private snackBar: StandardSnackbarService
+  ) {}
 
   public UnselectUsers(): void {
     const toRemove = this.DbSelectedUsers.filter((e) => e.IsSelected);
@@ -99,20 +110,36 @@ export class AddRemoveTeamUserComponent {
       return;
     }
 
+    this.WaitingOnSubmit = true;
+
     this.backend.Staff.PostTeamChange({
       currentTeam: this._dbTeam,
       toAdd: this.UserToAddChange.map((e) => e.Value),
       toRemove: this.UserToRemoveChange.map((e) => e.Value),
     }).subscribe({
       complete: () => {
+        this.snackBar.OpenConfirmationMessage(
+          'Successfully Added/Removed Team Members'
+        );
         if (this._dbTeam) {
           this.backend.Staff.GetAllAndTeamUsers(this._dbTeam.id).subscribe({
             next: (val) => {
               this._dbTeamUser = val;
               this.Reset();
             },
+            complete: () => (this.WaitingOnSubmit = false),
+            error: (errorResp: HttpErrorResponse) => {
+              this.WaitingOnSubmit = false;
+              this.snackBar.OpenErrorMessage(errorResp.error);
+            },
           });
+        } else {
+          this.WaitingOnSubmit = false;
         }
+      },
+      error: (errorResp: HttpErrorResponse) => {
+        this.WaitingOnSubmit = false;
+        this.snackBar.OpenErrorMessage(errorResp.error);
       },
     });
   }

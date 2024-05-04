@@ -1,7 +1,14 @@
-<mat-card class="form-card">
+<app-spinner-card
+  [stretch]="SpinnerCardStretch"
+  [spinnerActive]="waitingOnSubmit"
+>
   <mat-card-title>Add Team</mat-card-title>
   <mat-card-content>
-    <form #addTeamForm="ngForm" (ngSubmit)="AddTeamSubmit(addTeamForm)">
+    <form
+      #addTeamForm="ngForm"
+      (ngSubmit)="AddTeamSubmit(addTeamForm)"
+      [inert]="waitingOnSubmit"
+    >
       <mat-form-field class="form-item">
         <mat-label>Team Name</mat-label>
         <mat-icon matPrefix>people</mat-icon>
@@ -18,5 +25,5 @@
 
       <button type="submit" mat-raised-button color="primary">Add!</button>
     </form>
-  </mat-card-content></mat-card
+  </mat-card-content></app-spinner-card
 >

@@ -6,6 +6,7 @@ import { RegisterCredentials } from '../models/IRegisterCredentials';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
+import { StandardSnackbarService } from '../services/standard-snackbar.service';
 
 @Component({
   selector: 'app-register',
@@ -19,7 +20,7 @@ export class RegisterComponent implements OnInit {
   constructor(
     private backend: BackendConnectService,
     private router: Router,
-    private messageSnackBar: MatSnackBar
+    private messageSnackBar: StandardSnackbarService
   ) {}
 
   ngOnInit(): void {
@@ -38,16 +39,10 @@ export class RegisterComponent implements OnInit {
         this.waitingOnSubmit = false;
       },
       error: (errorResp: HttpErrorResponse) => {
-        this.openSnackBar(errorResp.error);
+        this.messageSnackBar.OpenErrorMessage(errorResp.error);
         this.waitingOnSubmit = false;
         form.resetForm();
       },
-    });
-  }
-
-  private openSnackBar(message: string): void {
-    this.messageSnackBar.open(message, 'Dismiss', {
-      duration: 1000 * 3,
     });
   }
 }
