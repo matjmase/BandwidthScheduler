@@ -59,7 +59,15 @@
         </mat-card>
       </div>
     </div>
-    <button type="submit" mat-raised-button color="primary" (click)="Submit()">
+    <button
+      [disabled]="
+        UserToAddChange.length === 0 && UserToRemoveChange.length === 0
+      "
+      type="submit"
+      mat-raised-button
+      color="primary"
+      (click)="Submit()"
+    >
       Submit!
     </button></mat-card-content
   ></app-spinner-card

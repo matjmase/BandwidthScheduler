@@ -102,18 +102,10 @@ export class AddRemoveTeamUserComponent {
   }
 
   public Submit(): void {
-    if (
-      (this.UserToAddChange.length === 0 &&
-        this.UserToRemoveChange.length === 0) ||
-      !this._dbTeam
-    ) {
-      return;
-    }
-
     this.WaitingOnSubmit = true;
 
     this.backend.Staff.PostTeamChange({
-      currentTeam: this._dbTeam,
+      currentTeam: this._dbTeam!,
       toAdd: this.UserToAddChange.map((e) => e.Value),
       toRemove: this.UserToRemoveChange.map((e) => e.Value),
     }).subscribe({
