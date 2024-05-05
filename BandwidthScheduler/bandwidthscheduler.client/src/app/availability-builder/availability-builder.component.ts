@@ -39,7 +39,8 @@ export class AvailabilityBuilderComponent {
               (e) =>
                 // any intersection
                 (e.startTime >= startTime && e.startTime < endTime) ||
-                (e.endTime > startTime && e.endTime <= endTime)
+                (e.endTime > startTime && e.endTime <= endTime) ||
+                (e.startTime <= startTime && e.endTime >= endTime)
             ),
           });
         }
