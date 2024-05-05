@@ -19,7 +19,7 @@ namespace BandwidthScheduler.Server.Test
 
         private int _numberOfUsers = 10;
 
-        private Dictionary<int, List<Availability>> _applicabilities;
+        private Dictionary<int, Availability[]> _applicabilities;
 
         [SetUp]
         public void Setup()
@@ -82,21 +82,9 @@ namespace BandwidthScheduler.Server.Test
                     Id = e.UserId,
                     Email = e.Email,
                 }
-            });
+            }).ToArray();
 
-            var segemented = convert.Aggregate(new Dictionary<int, List<Availability>>(), (s, i) =>
-            {
-                if (!s.ContainsKey(i.UserId))
-                {
-                    s.Add(i.UserId, new List<Availability>());
-                }
-
-                s[i.UserId].Add(i);
-
-                return s;
-            });
-
-            _applicabilities = segemented;   
+            _applicabilities = PublishController.AvailabilitiesToDictionary(convert);   
         }
 
         [Test]

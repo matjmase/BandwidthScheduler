@@ -28,16 +28,52 @@ namespace BandwidthScheduler.Server.Controllers
         [HttpPost("proposal")]
         [Authorize(Roles = "Scheduler")]
         public async Task<IActionResult> Proposal([FromBody] ScheduleProposalRequest proposalRequest)
-        { 
-            if(proposalRequest == null || proposalRequest.Proposal.Length == 0 || proposalRequest.SelectedTeam == null)
+        {
+            var totalAvailabilities = await GetAvailabilities(proposalRequest);
+
+            if (totalAvailabilities == null)
             {
                 return BadRequest("Invalid Proposal");
             }
 
-            var start = proposalRequest.Proposal[0].StartTime.ToUniversalTime();
-            var end = proposalRequest.Proposal[proposalRequest.Proposal.Length - 1].EndTime.ToUniversalTime();
+            var userAvailabilityArrays = AvailabilitiesToDictionary(totalAvailabilities);
 
-            var totalApplicable = await _db.Teams.Where(e => e.Id == proposalRequest.SelectedTeam.Id).Include(e => e.UserTeams).ThenInclude(e => e.User).ThenInclude(e => e.Availabilities).ThenInclude(e => e.User).SelectMany(e => e.UserTeams).Select(e => e.User).SelectMany(e => e.Availabilities).Where(e => e.StartTime >= start && e.EndTime <= end).OrderBy(e => e.StartTime).ToArrayAsync();
+            var streaks = CreateStreaks(userAvailabilityArrays);
+
+            var output = ScopeStreakToWindow(streaks, proposalRequest.Proposal);
+
+            return Ok(new ScheduleProposalResponse() { ProposalUsers = output.ToArray() });
+        }
+
+
+        [HttpPost("submit")]
+        [Authorize(Roles = "Scheduler")]
+        public async Task<IActionResult> ProposalSubmit([FromBody] ScheduleSubmitRequest submitRequest)
+        {
+            var totalApplicable = await GetAvailabilities(submitRequest.ProposalRequest);
+
+            if (totalApplicable == null)
+            {
+                return BadRequest("Invalid Proposal");
+            }
+
+            return Ok();
+        }
+
+        [NonAction]
+        public async Task<Availability[]?> GetAvailabilities(ScheduleProposalRequest request)
+        {
+            if (request == null || request.Proposal.Length == 0 || request.SelectedTeam == null)
+            {
+                return null;
+            }
+
+            var sorted = request.Proposal.OrderBy(e => e.StartTime).ToArray();
+
+            var start = sorted[0].StartTime.ToUniversalTime();
+            var end = sorted[sorted.Length - 1].EndTime.ToUniversalTime();
+
+            var totalApplicable = await _db.Teams.Where(e => e.Id == request.SelectedTeam.Id).Include(e => e.UserTeams).ThenInclude(e => e.User).ThenInclude(e => e.Availabilities).ThenInclude(e => e.User).SelectMany(e => e.UserTeams).Select(e => e.User).SelectMany(e => e.Availabilities).Where(e => e.StartTime >= start && e.EndTime <= end).OrderBy(e => e.StartTime).ToArrayAsync();
             totalApplicable = totalApplicable.Select(e =>
             new Availability()
             {
@@ -48,30 +84,39 @@ namespace BandwidthScheduler.Server.Controllers
                 EndTime = DateTime.SpecifyKind(e.EndTime, DateTimeKind.Utc),
             }).ToArray();
 
-            var applicableUsers = new Dictionary<int, List<Availability>>();
-            foreach (var applicability in totalApplicable)
-            { 
-                if(!applicableUsers.ContainsKey(applicability.UserId))
-                {
-                    applicableUsers.Add(applicability.UserId, new List<Availability>());
-                }
-
-                applicableUsers[applicability.UserId].Add(applicability);
-            }
-
-            var streaks = CreateStreaks(applicableUsers);
-
-            var output = ScopeStreakToWindow(streaks, proposalRequest.Proposal);
-
-            return Ok(new ScheduleProposalResponse() { ProposalUsers = output.ToArray() });
+            return totalApplicable;
         }
 
-
-        [HttpPost("proposalsubmit")]
-        [Authorize(Roles = "Scheduler")]
-        public async Task<IActionResult> ProposalSubmit([FromBody] ScheduleProposalRequest proposalRequest)
+        [NonAction]
+        public static Dictionary<int, Availability[]> AvailabilitiesToDictionary(Availability[] totalAvailabilities)
         {
-            return Ok();
+            var userAvailabilityCounts = new Dictionary<int, int>();
+
+            foreach (var availability in totalAvailabilities)
+            {
+                if (!userAvailabilityCounts.ContainsKey(availability.UserId))
+                {
+                    userAvailabilityCounts.Add(availability.UserId, 0);
+                }
+
+                userAvailabilityCounts[availability.UserId]++;
+            }
+
+            var userAvailabilityArrays = new Dictionary<int, Availability[]>();
+
+            foreach (var user in userAvailabilityCounts)
+            {
+                userAvailabilityArrays.Add(user.Key, new Availability[user.Value]);
+                userAvailabilityCounts[user.Key] = 0;
+            }
+
+            foreach (var availability in totalAvailabilities)
+            {
+                userAvailabilityArrays[availability.UserId][userAvailabilityCounts[availability.UserId]] = availability;
+                userAvailabilityCounts[availability.UserId]++;
+            }
+
+            return userAvailabilityArrays;
         }
 
         /// <summary>
@@ -80,15 +125,17 @@ namespace BandwidthScheduler.Server.Controllers
         /// <param name="segmentedAvailability"></param>
         /// <returns></returns>
         [NonAction]
-        public static Dictionary<int, List<Availability>> CreateStreaks(Dictionary<int, List<Availability>> segmentedAvailability)
+        public static Dictionary<int, List<Availability>> CreateStreaks(Dictionary<int, Availability[]> segmentedAvailability)
         {
             var streaks = new Dictionary<int, List<Availability>>();
             foreach (var userId in segmentedAvailability.Keys)
             {
+                var sorted = segmentedAvailability[userId].OrderBy(e => e.StartTime);
+
                 streaks.Add(userId, new List<Availability>());
 
                 Availability? lastApplicable = null;
-                foreach (var applicability in segmentedAvailability[userId])
+                foreach (var applicability in sorted)
                 {
                     if (lastApplicable == null)
                     {
