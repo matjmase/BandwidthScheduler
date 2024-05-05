@@ -2,7 +2,7 @@
 using BandwidthScheduler.Server.Common.Role;
 using BandwidthScheduler.Server.Common.Static;
 using BandwidthScheduler.Server.DbModels;
-using BandwidthScheduler.Server.Models;
+using BandwidthScheduler.Server.Models.LoginController.Request;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

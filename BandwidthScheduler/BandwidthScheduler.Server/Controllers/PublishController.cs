@@ -1,6 +1,7 @@
 ﻿using BandwidthScheduler.Server.Common.DataStructures;
 using BandwidthScheduler.Server.DbModels;
-using BandwidthScheduler.Server.Models;
+using BandwidthScheduler.Server.Models.PublishController.Request;
+using BandwidthScheduler.Server.Models.PublishController.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

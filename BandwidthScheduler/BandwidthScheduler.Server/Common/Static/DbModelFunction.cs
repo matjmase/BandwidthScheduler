@@ -1,6 +1,6 @@
 ﻿using BandwidthScheduler.Server.Common.Role;
 using BandwidthScheduler.Server.DbModels;
-using BandwidthScheduler.Server.Models;
+using BandwidthScheduler.Server.Models.LoginController.Response;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;

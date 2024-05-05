@@ -1,14 +1,9 @@
 ﻿using BandwidthScheduler.Server.Common.Static;
 using BandwidthScheduler.Server.DbModels;
-using BandwidthScheduler.Server.Models;
+using BandwidthScheduler.Server.Models.AvailabilityController.Request;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Runtime.Serialization;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace BandwidthScheduler.Server.Controllers
 {

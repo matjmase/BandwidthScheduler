@@ -1,4 +1,4 @@
-﻿namespace BandwidthScheduler.Server.Models
+﻿namespace BandwidthScheduler.Server.Models.LoginController.Response
 {
     public class LoginResponse
     {

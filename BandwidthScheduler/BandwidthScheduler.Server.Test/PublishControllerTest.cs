@@ -1,7 +1,8 @@
 using BandwidthScheduler.Server.Common.DataStructures;
 using BandwidthScheduler.Server.Controllers;
 using BandwidthScheduler.Server.DbModels;
-using BandwidthScheduler.Server.Models;
+using BandwidthScheduler.Server.Models.PublishController.Request;
+using BandwidthScheduler.Server.Models.PublishController.Response;
 
 namespace BandwidthScheduler.Server.Test
 {

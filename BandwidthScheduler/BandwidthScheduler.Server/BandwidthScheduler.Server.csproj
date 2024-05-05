@@ -34,4 +34,9 @@
     </ProjectReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\Availability\Response\" />
+    <Folder Include="Models\Shared\Response\" />
+  </ItemGroup>
+
 </Project>

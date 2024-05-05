@@ -46,13 +46,9 @@ export class SchedulePublisherComponent {
     const newTimeFrames: TimeFrameModel[] = [];
 
     for (let i = 0; i < this.totalBlock; i++) {
-      const startTime = this.GetDateTransformed(
-        i,
-        this.RenderModel.currentDate
-      );
       newTimeFrames.push(
         new TimeFrameModel(
-          startTime,
+          this.GetDateTransformed(i, this.RenderModel.currentDate),
           this.GetDateTransformed(i + 1, this.RenderModel.currentDate),
           new Array(this.RenderModel.maxEmployees).fill(false)
         )

@@ -31,11 +31,15 @@ export class AvailabilityBuilderComponent {
         // fill out time blocks
         for (let i = 0; i < this.totalBlock; i++) {
           const startTime = this.GetDateTransformed(i);
+          const endTime = this.GetDateTransformed(i + 1);
           this.currentAvailableModels.push({
             startTime: startTime,
-            endTime: this.GetDateTransformed(i + 1),
+            endTime: endTime,
             isSelected: this.currentAvailabilities.some(
-              (e) => e.startTime <= startTime && e.endTime > startTime
+              (e) =>
+                // any intersection
+                (e.startTime >= startTime && e.startTime < endTime) ||
+                (e.endTime > startTime && e.endTime <= endTime)
             ),
           });
         }
