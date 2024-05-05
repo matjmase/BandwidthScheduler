@@ -1,4 +1,4 @@
-export interface IScheduleProposal {
+export interface IScheduleProposalAmount {
   startTime: Date;
   endTime: Date;
   employees: number;

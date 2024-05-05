@@ -1,13 +1,5 @@
-export interface IScheduleProposalResponse {
-  userId: number;
-  email: string;
-  startTime: string;
-  endTime: string;
-}
+import { IScheduleProposalUser } from './IScheduleProposalUser';
 
-export interface IScheduleProposalResponseProcessed {
-  userId: number;
-  email: string;
-  startTime: Date;
-  endTime: Date;
+export interface IScheduleProposalResponse {
+  proposalUsers: IScheduleProposalUser[];
 }

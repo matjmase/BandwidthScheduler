@@ -63,7 +63,15 @@ namespace BandwidthScheduler.Server.Controllers
 
             var output = ScopeStreakToWindow(streaks, proposalRequest.Proposal);
 
-            return Ok(output);
+            return Ok(new ScheduleProposalResponse() { ProposalUsers = output.ToArray() });
+        }
+
+
+        [HttpPost("proposalsubmit")]
+        [Authorize(Roles = "Scheduler")]
+        public async Task<IActionResult> ProposalSubmit([FromBody] ScheduleProposalRequest proposalRequest)
+        {
+            return Ok();
         }
 
         /// <summary>
@@ -116,7 +124,7 @@ namespace BandwidthScheduler.Server.Controllers
         /// <param name="window"></param>
         /// <returns></returns>
         [NonAction]
-        public static HashSet<ScheduleProposalResponse> ScopeStreakToWindow(Dictionary<int, List<Availability>> streaks, ScheduleProposal[] window)
+        public static HashSet<ScheduleProposalUser> ScopeStreakToWindow(Dictionary<int, List<Availability>> streaks, ScheduleProposalAmount[] window)
         {
 
             var sortedStarts = streaks.Values.SelectMany(e => e).OrderBy(e => e.StartTime);
@@ -125,13 +133,13 @@ namespace BandwidthScheduler.Server.Controllers
             var usersInHeap = new Dictionary<int, Availability>();
             var usersInHeapButNotSelected = new HashSet<Availability>();
 
-            var usersSelected = new HashSet<ScheduleProposalResponse>();
-            var userIdsSelected = new Dictionary<int, ScheduleProposalResponse>();
+            var usersSelected = new HashSet<ScheduleProposalUser>();
+            var userIdsSelected = new Dictionary<int, ScheduleProposalUser>();
 
-            var output = new HashSet<ScheduleProposalResponse>();
+            var output = new HashSet<ScheduleProposalUser>();
 
             var startEnumerator = sortedStarts.GetEnumerator();
-            var windowEnumerator = ((IEnumerable<ScheduleProposal>)window).GetEnumerator();
+            var windowEnumerator = ((IEnumerable<ScheduleProposalAmount>)window).GetEnumerator();
 
             var startHasNext = startEnumerator.MoveNext();
             var windowHasNext = windowEnumerator.MoveNext();
@@ -189,7 +197,7 @@ namespace BandwidthScheduler.Server.Controllers
         }
 
         [NonAction]
-        public static void ProcessTimeWIndow(ScheduleProposal currWindow, ref DictionaryHeap<Availability> endTimes, ref Dictionary<int, Availability> usersInHeap, ref HashSet<Availability> usersInHeapButNotSelected, ref HashSet<ScheduleProposalResponse> usersSelected, ref Dictionary<int, ScheduleProposalResponse> userIdsSelected, ref HashSet<ScheduleProposalResponse> output)
+        public static void ProcessTimeWIndow(ScheduleProposalAmount currWindow, ref DictionaryHeap<Availability> endTimes, ref Dictionary<int, Availability> usersInHeap, ref HashSet<Availability> usersInHeapButNotSelected, ref HashSet<ScheduleProposalUser> usersSelected, ref Dictionary<int, ScheduleProposalUser> userIdsSelected, ref HashSet<ScheduleProposalUser> output)
         {
             // remove excess
             if (usersSelected.Count > currWindow.Employees)
@@ -244,7 +252,7 @@ namespace BandwidthScheduler.Server.Controllers
         }
 
         [NonAction]
-        public static void AddUsersFromHeap(ScheduleProposal currWindow, DateTime currentTime, ref Dictionary<int, Availability> usersInHeap, ref HashSet<Availability> usersInHeapButNotSelected, ref HashSet<ScheduleProposalResponse> usersSelected, ref Dictionary<int, ScheduleProposalResponse> userIdsSelected)
+        public static void AddUsersFromHeap(ScheduleProposalAmount currWindow, DateTime currentTime, ref Dictionary<int, Availability> usersInHeap, ref HashSet<Availability> usersInHeapButNotSelected, ref HashSet<ScheduleProposalUser> usersSelected, ref Dictionary<int, ScheduleProposalUser> userIdsSelected)
         {
             if (usersSelected.Count < currWindow.Employees && usersSelected.Count < usersInHeap.Count) // less
             {
@@ -256,7 +264,7 @@ namespace BandwidthScheduler.Server.Controllers
                     var random = usersInHeapButNotSelected.First();
                     usersInHeapButNotSelected.Remove(random);
 
-                    var response = new ScheduleProposalResponse()
+                    var response = new ScheduleProposalUser()
                     {
                         Email = random.User.Email,
                         StartTime = currentTime,

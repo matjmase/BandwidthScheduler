@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { TimeFrameModel, TriStateButton } from '../TimeFrameModel';
 import { IScheduleProposalRequest } from '../../models/IScheduleProposalRequest';
-import { IScheduleProposal } from '../../models/IScheduleProposal';
+import { IScheduleProposalAmount } from '../../models/IScheduleProposalAmount';
 
 @Component({
   selector: 'app-grid-rendering-proposal',
@@ -13,9 +13,8 @@ export class GridRenderingProposalComponent {
     this.TimeFrames = model;
   }
 
-  @Output() Proposal: EventEmitter<IScheduleProposal[]> = new EventEmitter<
-    IScheduleProposal[]
-  >();
+  @Output() Proposal: EventEmitter<IScheduleProposalAmount[]> =
+    new EventEmitter<IScheduleProposalAmount[]>();
 
   public TimeFrames: TimeFrameModel[] = [];
 
@@ -32,7 +31,7 @@ export class GridRenderingProposalComponent {
   }
 
   public GenerateProposal(): void {
-    const proposal: IScheduleProposal[] = [];
+    const proposal: IScheduleProposalAmount[] = [];
 
     for (let timeFrame of this.TimeFrames) {
       let finalLevel = 0;

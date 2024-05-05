@@ -12,8 +12,8 @@ export class PublishController {
 
   public RequestScheduleTimes(
     request: IScheduleProposalRequest
-  ): Observable<IScheduleProposalResponse[]> {
-    return this.http.post<IScheduleProposalResponse[]>(
+  ): Observable<IScheduleProposalResponse> {
+    return this.http.post<IScheduleProposalResponse>(
       this._baseUrl + 'proposal',
       request
     );

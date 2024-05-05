@@ -15,7 +15,7 @@ namespace BandwidthScheduler.Server.Test
 
         private int _totalEmployees;
 
-        private ScheduleProposal[] _schedule;
+        private ScheduleProposalAmount[] _schedule;
 
         private int _numberOfUsers = 10;
 
@@ -31,10 +31,10 @@ namespace BandwidthScheduler.Server.Test
 
             _totalEmployees = 7;
 
-            var schedule = new List<ScheduleProposal>(); 
+            var schedule = new List<ScheduleProposalAmount>(); 
             for (var i = _startTime; i < _endTime; i = i.AddMinutes(_timeDiffMinutes))
             {
-                schedule.Add(new ScheduleProposal()
+                schedule.Add(new ScheduleProposalAmount()
                 {
                     StartTime = i,
                     EndTime = i.AddMinutes(_timeDiffMinutes),
@@ -47,7 +47,7 @@ namespace BandwidthScheduler.Server.Test
             var applicabilities = new List<UserApplicabilityTestingModel>();
             for (var i = _startTime; i < _endTime; i = i.AddMinutes(_timeDiffMinutes))
             {
-                schedule.Add(new ScheduleProposal()
+                schedule.Add(new ScheduleProposalAmount()
                 {
                     StartTime = i,
                     EndTime = i.AddMinutes(_timeDiffMinutes),
@@ -120,7 +120,7 @@ namespace BandwidthScheduler.Server.Test
             var streaks = PublishController.CreateStreaks(_applicabilities);
             var scoped = PublishController.ScopeStreakToWindow(streaks, _schedule);
 
-            var currHeap = new Heap<ScheduleProposalResponse>((f, s) => f.EndTime < s.EndTime);
+            var currHeap = new Heap<ScheduleProposalUser>((f, s) => f.EndTime < s.EndTime);
 
             var scopedEnum = scoped.OrderBy(e => e.StartTime).GetEnumerator();
             var windowEnum = _schedule.OrderBy(e => e.StartTime).GetEnumerator();
@@ -142,13 +142,13 @@ namespace BandwidthScheduler.Server.Test
 
             var scheduleDict = _schedule.ToDictionary(e => e.StartTime);
 
-            Action<ScheduleProposalResponse> incrementScoped = (ScheduleProposalResponse resp) =>
+            Action<ScheduleProposalUser> incrementScoped = (ScheduleProposalUser resp) =>
             {
                 currHeap.Add(resp);
                 scopedHasNext = scopedEnum.MoveNext();
             };
 
-            Action<ScheduleProposal> incrementWindow = (ScheduleProposal req) =>
+            Action<ScheduleProposalAmount> incrementWindow = (ScheduleProposalAmount req) =>
             {
                 // Update heap
                 while (!currHeap.IsEmpty() && currHeap.Peek().EndTime < req.EndTime)

@@ -1,9 +1,9 @@
 import { Component, Input } from '@angular/core';
 import { ColoredTimeFrameModel, IColorModel } from '../ColoredTimeFrameModel';
 import { Heap } from '../../DataStructures/Heap';
-import { IScheduleProposalResponseProcessed } from '../../models/IScheduleProposalResponse';
 import { ProposalResponseWrapper } from '../schedule-publisher.component';
 import { IGridRenderingGeneratedModel } from './grid-rendering-generated-model';
+import { IScheduleProposalUserProcessed } from '../../models/IScheduleProposalUser';
 
 @Component({
   selector: 'app-grid-rendering-generated',
@@ -33,8 +33,8 @@ export class GridRenderingGeneratedComponent {
   constructor() {}
 
   private ProcessResponse(model: IGridRenderingGeneratedModel) {
-    const response = model.responseRaw
-      .map<IScheduleProposalResponseProcessed>((e) => {
+    const response = model.responseRaw.proposalUsers
+      .map<IScheduleProposalUserProcessed>((e) => {
         return {
           email: e.email,
           userId: e.userId,

@@ -3,16 +3,12 @@ import { NgForm } from '@angular/forms';
 import { TimeFrameModel, TriStateButton } from './TimeFrameModel';
 import { IScheduleProposalRequest } from '../models/IScheduleProposalRequest';
 import { BackendConnectService } from '../services/backend-connect.service';
-import { ColoredTimeFrameModel, IColorModel } from './ColoredTimeFrameModel';
-import {
-  IScheduleProposalResponse,
-  IScheduleProposalResponseProcessed,
-} from '../models/IScheduleProposalResponse';
-import { Heap } from '../DataStructures/Heap';
+import { IColorModel } from './ColoredTimeFrameModel';
 import { GridRenderingFormModel } from './grid-rendering-form/grid-rendering-form-model';
 import { IGridRenderingGeneratedModel } from './grid-rendering-generated/grid-rendering-generated-model';
 import { ITeam } from '../models/ITeam';
-import { IScheduleProposal } from '../models/IScheduleProposal';
+import { IScheduleProposalAmount } from '../models/IScheduleProposalAmount';
+import { IScheduleProposalUserProcessed } from '../models/IScheduleProposalUser';
 
 @Component({
   selector: 'app-schedule-publisher',
@@ -66,7 +62,7 @@ export class SchedulePublisherComponent {
     return cloneDate;
   }
 
-  public SubmitProposal(proposal: IScheduleProposal[]) {
+  public SubmitProposal(proposal: IScheduleProposalAmount[]) {
     const request: IScheduleProposalRequest = {
       selectedTeam: this.SelectedTeam!,
       proposal: proposal,
@@ -86,7 +82,7 @@ export class SchedulePublisherComponent {
 
 export class ProposalResponseWrapper {
   constructor(
-    public response: IScheduleProposalResponseProcessed,
+    public response: IScheduleProposalUserProcessed,
     public colorModel: IColorModel
   ) {}
 }

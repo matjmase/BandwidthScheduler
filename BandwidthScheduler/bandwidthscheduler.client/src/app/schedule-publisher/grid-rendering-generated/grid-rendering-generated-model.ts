@@ -4,5 +4,5 @@ import { IScheduleProposalResponse } from '../../models/IScheduleProposalRespons
 export interface IGridRenderingGeneratedModel {
   maxNumberOfPeople: number;
   proposal: IScheduleProposalRequest;
-  responseRaw: IScheduleProposalResponse[];
+  responseRaw: IScheduleProposalResponse;
 }
