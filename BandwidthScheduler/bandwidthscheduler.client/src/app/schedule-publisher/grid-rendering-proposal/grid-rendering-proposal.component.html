@@ -1,6 +1,10 @@
 <div style="display: block">
   <div class="flex-row-scroll">
-    <div class="flex-column" *ngFor="let timeFrame of TimeFrames">
+    <div
+      class="flex-column"
+      (mouseleave)="ClearAllHover()"
+      *ngFor="let timeFrame of TimeFrames"
+    >
       <mat-card class="padded-card">
         {{ timeFrame.StartTime | date : "hh:mm aa" }}
       </mat-card>

@@ -19,6 +19,10 @@ export class GridRenderingProposalComponent {
 
   public TimeFrames: TimeFrameModel[] = [];
 
+  public ClearAllHover(): void {
+    this.TimeFrames.forEach((e) => e.SetLevelLeave());
+  }
+
   public ClearSelection(): void {
     for (let timeFrame of this.TimeFrames) {
       for (let i = 0; i < timeFrame.Level.length; i++) {
