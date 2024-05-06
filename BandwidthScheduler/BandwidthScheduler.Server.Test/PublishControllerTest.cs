@@ -235,7 +235,6 @@ namespace BandwidthScheduler.Server.Test
             }
         }
 
-
         [Test]
         public void TestProcessAvailabilitiesAndProposalsShift()
         {
@@ -252,7 +251,7 @@ namespace BandwidthScheduler.Server.Test
 
             var shifted = new Dictionary<int, Availability[]>();
 
-            foreach(var applicable in _applicabilities)
+            foreach (var applicable in _applicabilities)
             {
                 shifted.Add(applicable.Key, applicable.Value.Select(e => new Availability() { UserId = e.UserId, StartTime = e.StartTime.AddMinutes(_timeDiffMinutes), EndTime = e.EndTime.AddMinutes(_timeDiffMinutes) }).ToArray());
             }
@@ -260,6 +259,50 @@ namespace BandwidthScheduler.Server.Test
             if (PublishController.ProcessAvailabilitiesAndProposals(_applicabilities, start, end, shifted, start, end, addAvailabilityFunc, removeAvailabilityFunc, addCommitmentFunc))
             {
                 Assert.Fail();
+            }
+        }
+
+        [Test]
+        public void TestProcessAvailabilitiesAndProposalsShrink()
+        {
+            Func<Availability, DateTime> start = e => e.StartTime;
+            Func<Availability, DateTime> end = e => e.EndTime;
+
+            var addCommitment = new List<Availability>();
+            var removeAvailability = new List<Availability>();
+            var addAvailability = new List<Availability>();
+
+            Action<int, DateTime, DateTime> addAvailabilityFunc = (userId, start, end) => { addAvailability.Add(new Availability() { UserId = userId, StartTime = start, EndTime = end }); };
+            Action<Availability> removeAvailabilityFunc = e => { removeAvailability.Add(e); };
+            Action<Availability> addCommitmentFunc = e => { addCommitment.Add(e); };
+
+            var shrink = new Dictionary<int, Availability[]>();
+
+            var diff = new TimeSpan(0, _timeDiffMinutes, 0);
+            var diffTicks = diff.Ticks;
+            var bothSides = diffTicks / 2; 
+            var halfLength = bothSides / 2; 
+
+            foreach (var applicable in _applicabilities)
+            {
+                shrink.Add(applicable.Key, applicable.Value.Select(e => new Availability() { UserId = e.UserId, StartTime = e.StartTime.AddTicks(halfLength), EndTime = e.EndTime.AddTicks(-halfLength) }).ToArray());
+            }
+
+            if (!PublishController.ProcessAvailabilitiesAndProposals(_applicabilities, start, end, shrink, start, end, addAvailabilityFunc, removeAvailabilityFunc, addCommitmentFunc))
+            {
+                Assert.Fail();
+            }
+
+            var commitmentDict = addCommitment.ToDictionaryAggregate(e => e.UserId);
+            var removeDict = removeAvailability.ToDictionaryAggregate(e => e.UserId);
+            var addDict = addAvailability.ToDictionaryAggregate(e => e.UserId);
+
+            foreach (var userId in _applicabilities.Keys)
+            {
+                if (_applicabilities[userId].Length != commitmentDict[userId].Length || commitmentDict[userId].Length * 2 != addDict[userId].Length)
+                {
+                    Assert.Fail();
+                }
             }
         }
 
