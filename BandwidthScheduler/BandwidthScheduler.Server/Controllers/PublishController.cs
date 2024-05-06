@@ -1,5 +1,6 @@
 ﻿using BandwidthScheduler.Server.Common.DataStructures;
 using BandwidthScheduler.Server.Common.Extensions;
+using BandwidthScheduler.Server.Common.Role;
 using BandwidthScheduler.Server.DbModels;
 using BandwidthScheduler.Server.Models.PublishController.Request;
 using BandwidthScheduler.Server.Models.PublishController.Response;
@@ -293,7 +294,14 @@ namespace BandwidthScheduler.Server.Controllers
             var start = sorted[0].StartTime.ToUniversalTime();
             var end = sorted[sorted.Length - 1].EndTime.ToUniversalTime();
 
-            var totalApplicable = await _db.Teams.Where(e => e.Id == request.SelectedTeam.Id).Include(e => e.UserTeams).ThenInclude(e => e.User).ThenInclude(e => e.Availabilities).ThenInclude(e => e.User).SelectMany(e => e.UserTeams).Select(e => e.User).SelectMany(e => e.Availabilities).Where(e => e.StartTime >= start && e.EndTime <= end).OrderBy(e => e.StartTime).ToArrayAsync();
+            var totalApplicable = await _db.UserRoles
+                .Where(e => e.RoleId == (int)AuthenticationRole.User) // role filtering
+                .Include(e => e.User).ThenInclude(e => e.UserTeams) // userteam include
+                .Include(e => e.User).ThenInclude(e => e.Availabilities) // availabilities include
+                .Select(e => e.User).SelectMany(e => e.UserTeams) // userteam nav
+                .Where(e => e.TeamId == request.SelectedTeam.Id) // userteam filter
+                .Select(e => e.User).SelectMany(e => e.Availabilities) // availabilies nav
+                .Where(e => e.StartTime >= start && e.EndTime <= end).OrderBy(e => e.StartTime).ToArrayAsync(); // availability filter
             totalApplicable = totalApplicable.Select(e =>
             new Availability()
             {
