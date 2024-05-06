@@ -34,9 +34,11 @@ The Scheduler will be presented with a solution to the bandwidth scheduling dema
 <br />
 <img src="https://github.com/matjmase/BandwidthScheduler/blob/main/Screenshots/DesiredProposedComparison.jpg" width="600" />
 
-## Future Development
+## Still in Development
+
+Working on how to handle multiple schedulings during the same time.
+
+## Backlog Development
 
 User weighting/priority for assigning the shifts.<br />
-Team building page.<br />
 Published schedule viewing.<br />
-User notifications for published dates.<br />
