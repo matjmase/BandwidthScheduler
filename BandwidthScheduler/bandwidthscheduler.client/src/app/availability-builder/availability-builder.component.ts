@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { BackendConnectService } from '../services/backend-connect.service';
-import { AvailabilityEntry } from '../models/IAvailabilityEntry';
+import { AvailabilityEntry } from '../models/AvailabilityEntry';
+import { CommitmentEntry } from '../models/CommitmentEntry';
+import { StandardSnackbarService } from '../services/standard-snackbar.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-availability-builder',
@@ -26,7 +29,13 @@ export class AvailabilityBuilderComponent {
     this.backEnd.Availability.GetAllTimes(this._currentDate).subscribe({
       complete: () => (this.loading = false),
       next: (value) => {
-        this.currentAvailabilities = value.map((e) => new AvailabilityEntry(e));
+        this.currentAvailabilities = value.availabilities.map(
+          (e) => new AvailabilityEntry(e)
+        );
+
+        this.currentCommitmentModels = value.commitments.map(
+          (e) => new CommitmentEntry(e)
+        );
 
         // fill out time blocks
         for (let i = 0; i < this.totalBlock; i++) {
@@ -42,16 +51,29 @@ export class AvailabilityBuilderComponent {
                 (e.endTime > startTime && e.endTime <= endTime) ||
                 (e.startTime <= startTime && e.endTime >= endTime)
             ),
+            isDisabled: this.currentCommitmentModels.some(
+              (e) =>
+                (e.startTime >= startTime && e.startTime < endTime) ||
+                (e.endTime > startTime && e.endTime <= endTime) ||
+                (e.startTime <= startTime && e.endTime >= endTime)
+            ),
           });
         }
+      },
+      error: (errorResp: HttpErrorResponse) => {
+        this.snackBar.OpenErrorMessage(errorResp.error);
       },
     });
   }
 
   currentAvailabilities: AvailabilityEntry[] = [];
+  currentCommitmentModels: CommitmentEntry[] = [];
   currentAvailableModels: IAvailabilityEntryModel[] = [];
 
-  constructor(private backEnd: BackendConnectService) {}
+  constructor(
+    private backEnd: BackendConnectService,
+    private snackBar: StandardSnackbarService
+  ) {}
 
   public GetDateTransformed(increment: number): Date {
     const cloneDate = new Date(this.currentDate!);
@@ -85,4 +107,5 @@ export interface IAvailabilityEntryModel extends AvailabilityEntry {
   startTime: Date;
   endTime: Date;
   isSelected: boolean;
+  isDisabled: boolean;
 }

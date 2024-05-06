@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
-import { IAvailabilityResponse } from '../../models/IAvailabilityResponse';
-import { AvailabilityEntry } from '../../models/IAvailabilityEntry';
+import { Observable } from 'rxjs';
+import { AvailabilityEntry } from '../../models/AvailabilityEntry';
+import { IAvailabilityCommitmentResponse } from '../../models/IAvailabilityCommitmentResponse';
 
 export class AvailabilityController {
   private _baseUrl: string;
@@ -10,8 +10,8 @@ export class AvailabilityController {
     this._baseUrl = baseApiUrl + 'availability/';
   }
 
-  public GetAllTimes(date: Date): Observable<IAvailabilityResponse[]> {
-    return this.http.get<IAvailabilityResponse[]>(this._baseUrl, {
+  public GetAllTimes(date: Date): Observable<IAvailabilityCommitmentResponse> {
+    return this.http.get<IAvailabilityCommitmentResponse>(this._baseUrl, {
       headers: {
         dayRequested: date.toUTCString(),
       },

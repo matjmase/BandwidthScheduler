@@ -1,5 +1,6 @@
 ﻿using BandwidthScheduler.Server.Common.Static;
 using BandwidthScheduler.Server.DbModels;
+using BandwidthScheduler.Server.Models.Availability.Response;
 using BandwidthScheduler.Server.Models.AvailabilityController.Request;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -37,7 +38,27 @@ namespace BandwidthScheduler.Server.Controllers
                 UserId = e.UserId
             }).ToArray();
 
-            return Ok(availabilities);
+            var commitments = await _db.Commitments.Include(e => e.Team).Include(e => e.User).Where(e => e.UserId == current.Id &&
+            date <= e.StartTime
+            &&
+            date.AddHours(24) > e.StartTime).ToArrayAsync();
+            
+            var clientCommitment = commitments.Select(e => new ClientCommitment()
+            {
+                Id = e.Id,
+                UserId = e.UserId,
+                UserEmail = e.User.Email,
+                TeamId = e.TeamId,
+                TeamName = e.Team.Name,
+                StartTime = DateTime.SpecifyKind(e.StartTime, DateTimeKind.Utc),
+                EndTime = DateTime.SpecifyKind(e.EndTime, DateTimeKind.Utc),
+            }).ToArray();
+
+            return Ok(new
+            {
+                Availabilities = availabilities,
+                Commitments = clientCommitment
+            });
         }
 
         [HttpPut]

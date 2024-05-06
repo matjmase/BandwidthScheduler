@@ -25,3 +25,11 @@
   *ngIf="GeneratedModel"
   [Model]="GeneratedModel"
 ></app-grid-rendering-generated>
+
+<mat-divider *ngIf="GeneratedModel"></mat-divider>
+
+<div *ngIf="GeneratedModel">
+  <button mat-stroked-button color="primary" (click)="SubmitFinal()">
+    Submit
+  </button>
+</div>

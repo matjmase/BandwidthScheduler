@@ -84,7 +84,12 @@ namespace BandwidthScheduler.Server.Test
                 }
             }).ToArray();
 
-            _applicabilities = PublishController.AvailabilitiesToDictionary(convert);   
+            _applicabilities = PublishController.IdentityAggregatorArray(e => e.UserId, convert);   
+
+            foreach(var kv in _applicabilities) 
+            {
+                _applicabilities[kv.Key] = kv.Value.OrderBy(e => e.StartTime).ToArray();
+            }
         }
 
         [Test]
@@ -102,6 +107,9 @@ namespace BandwidthScheduler.Server.Test
             }
         }
 
+        /// <summary>
+        /// Designed for time intervals as opposed to the continuous/event based nature of the algorithm in production.
+        /// </summary>
         [Test]
         public void TestStreakScoping()
         {
@@ -169,6 +177,88 @@ namespace BandwidthScheduler.Server.Test
                 {
                     incrementWindow(windowEnum.Current);
                 }
+            }
+        }
+
+        [Test]
+        public void TestProcessAvailabilitiesAndProposalsIdentity()
+        {
+            Func<Availability, DateTime> start = e => e.StartTime;
+            Func<Availability, DateTime> end = e => e.EndTime;
+
+            var addCommitment = new List<Availability>();
+            var removeAvailability = new List<Availability>();
+            var addAvailability = new List<Availability>();
+
+            Action<int, DateTime, DateTime> addAvailabilityFunc = (userId, start, end) => { addAvailability.Add(new Availability() { UserId = userId, StartTime = start, EndTime = end }); };
+            Action<Availability> removeAvailabilityFunc = e => { removeAvailability.Add(e); };
+            Action<Availability> addCommitmentFunc = e => { addCommitment.Add(e); };
+
+            if (!PublishController.ProcessAvailabilitiesAndProposals(_applicabilities, start, end, _applicabilities, start, end, addAvailabilityFunc, removeAvailabilityFunc, addCommitmentFunc))
+            {
+                Assert.Fail();
+            }
+
+            var commitmentDict = PublishController.IdentityAggregatorArray(e => e.UserId, addCommitment);
+            var removeDict = PublishController.IdentityAggregatorArray(e => e.UserId, removeAvailability);
+            var addDict = PublishController.IdentityAggregatorArray(e => e.UserId, addAvailability);
+            
+            if (addDict.Count() != 0)
+            {
+                Assert.Fail();
+            }
+
+            Func<Availability, Availability, bool> availabilitiesAreEqual = (f, s) =>
+            {
+                return f.UserId == s.UserId && f.StartTime == s.StartTime && f.EndTime == s.EndTime;
+            };
+
+            foreach (var userId in _applicabilities.Keys)
+            {
+                if (_applicabilities[userId].Length != commitmentDict[userId].Length || commitmentDict[userId].Length != removeDict[userId].Length)
+                {
+                    Assert.Fail();
+                }
+
+                for(var i = 0; i < _applicabilities[userId].Length; i++)
+                {
+                    var areEqual = true;
+                    areEqual = areEqual && availabilitiesAreEqual(_applicabilities[userId][i], commitmentDict[userId][i]);
+                    areEqual = areEqual && availabilitiesAreEqual(commitmentDict[userId][i], removeDict[userId][i]);
+
+                    if (!areEqual)
+                    {
+                        Assert.Fail();
+                    }
+                }
+            }
+        }
+
+
+        [Test]
+        public void TestProcessAvailabilitiesAndProposalsShift()
+        {
+            Func<Availability, DateTime> start = e => e.StartTime;
+            Func<Availability, DateTime> end = e => e.EndTime;
+
+            var addCommitment = new List<Availability>();
+            var removeAvailability = new List<Availability>();
+            var addAvailability = new List<Availability>();
+
+            Action<int, DateTime, DateTime> addAvailabilityFunc = (userId, start, end) => { addAvailability.Add(new Availability() { UserId = userId, StartTime = start, EndTime = end }); };
+            Action<Availability> removeAvailabilityFunc = e => { removeAvailability.Add(e); };
+            Action<Availability> addCommitmentFunc = e => { addCommitment.Add(e); };
+
+            var shifted = new Dictionary<int, Availability[]>();
+
+            foreach(var applicable in _applicabilities)
+            {
+                shifted.Add(applicable.Key, applicable.Value.Select(e => new Availability() { UserId = e.UserId, StartTime = e.StartTime.AddMinutes(_timeDiffMinutes), EndTime = e.EndTime.AddMinutes(_timeDiffMinutes) }).ToArray());
+            }
+
+            if (PublishController.ProcessAvailabilitiesAndProposals(_applicabilities, start, end, shifted, start, end, addAvailabilityFunc, removeAvailabilityFunc, addCommitmentFunc))
+            {
+                Assert.Fail();
             }
         }
 

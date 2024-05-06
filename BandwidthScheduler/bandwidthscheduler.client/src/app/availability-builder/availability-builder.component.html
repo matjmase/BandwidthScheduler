@@ -32,6 +32,7 @@
         class="card-clickable"
         [checked]="model.isSelected"
         (change)="model.isSelected = $event.source.checked"
+        [disabled]="model.isDisabled"
       >
         {{ model.startTime | date : "hh:mm aa" }}
         -

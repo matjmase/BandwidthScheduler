@@ -9,6 +9,9 @@ import { IGridRenderingGeneratedModel } from './grid-rendering-generated/grid-re
 import { ITeam } from '../models/ITeam';
 import { IScheduleProposalAmount } from '../models/IScheduleProposalAmount';
 import { IScheduleProposalUserProcessed } from '../models/IScheduleProposalUser';
+import { IScheduleProposalResponse } from '../models/IScheduleProposalResponse';
+import { HttpErrorResponse } from '@angular/common/http';
+import { StandardSnackbarService } from '../services/standard-snackbar.service';
 
 @Component({
   selector: 'app-schedule-publisher',
@@ -20,6 +23,9 @@ export class SchedulePublisherComponent {
   private totalMinutes = 24 * 60;
   private totalBlock = this.totalMinutes / this.timeSpan;
 
+  private proposalRequest: IScheduleProposalRequest | undefined;
+  private proposalResponse: IScheduleProposalResponse | undefined;
+
   public SelectedTeam: ITeam | undefined;
 
   public RenderModel: GridRenderingFormModel | undefined;
@@ -28,7 +34,10 @@ export class SchedulePublisherComponent {
 
   public GeneratedModel: IGridRenderingGeneratedModel | undefined;
 
-  constructor(private backend: BackendConnectService) {}
+  constructor(
+    private backend: BackendConnectService,
+    private snackBar: StandardSnackbarService
+  ) {}
 
   public SubmitTeam(team: ITeam) {
     this.SelectedTeam = team;
@@ -63,19 +72,31 @@ export class SchedulePublisherComponent {
   }
 
   public SubmitProposal(proposal: IScheduleProposalAmount[]) {
-    const request: IScheduleProposalRequest = {
+    this.proposalRequest = {
       selectedTeam: this.SelectedTeam!,
       proposal: proposal,
     };
 
-    this.backend.Publish.RequestScheduleTimes(request).subscribe({
+    this.backend.Publish.RequestScheduleTimes(this.proposalRequest).subscribe({
       next: (resp) => {
+        this.proposalResponse = resp;
         this.GeneratedModel = {
           maxNumberOfPeople: this.RenderModel!.maxEmployees,
-          proposal: request,
-          responseRaw: resp,
+          proposal: this.proposalRequest!,
+          responseRaw: this.proposalResponse!,
         };
       },
+    });
+  }
+
+  public SubmitFinal() {
+    this.backend.Publish.SubmitSchedule({
+      ProposalRequest: this.proposalRequest!,
+      ProposalResponse: this.proposalResponse!,
+    }).subscribe({
+      complete: () => window.location.reload(),
+      error: (errorResp: HttpErrorResponse) =>
+        this.snackBar.OpenErrorMessage(errorResp.error),
     });
   }
 }
