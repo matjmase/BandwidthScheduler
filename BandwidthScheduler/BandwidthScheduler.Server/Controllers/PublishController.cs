@@ -1,4 +1,5 @@
 ﻿using BandwidthScheduler.Server.Common.DataStructures;
+using BandwidthScheduler.Server.Common.Extensions;
 using BandwidthScheduler.Server.DbModels;
 using BandwidthScheduler.Server.Models.PublishController.Request;
 using BandwidthScheduler.Server.Models.PublishController.Response;
@@ -37,7 +38,7 @@ namespace BandwidthScheduler.Server.Controllers
                 return BadRequest("Invalid Proposal");
             }
 
-            var userAvailabilityArrays = IdentityAggregatorArray(e => e.UserId, totalAvailabilities);
+            var userAvailabilityArrays = totalAvailabilities.ToDictionaryAggregate(e => e.UserId);
 
             var streaks = CreateStreaks(userAvailabilityArrays);
 
@@ -87,7 +88,7 @@ namespace BandwidthScheduler.Server.Controllers
         private bool ProposalSubmitReproducibilityCheck(ScheduleSubmitRequest submitRequest)
         {
             var availabilities = submitRequest.ProposalResponse.ProposalUsers.Select(e => new Availability() { UserId = e.UserId, StartTime = e.StartTime, EndTime = e.EndTime, User = new User() { Email = e.Email } }).ToArray();
-            var availabilityDictionary = IdentityAggregatorList(e => e.UserId, availabilities);
+            var availabilityDictionary = availabilities.ToDictionaryAggregate(e => e.UserId).SelectDictionaryValue(v => v.ToList());
 
             var userProposals = ScopeStreakToWindow(availabilityDictionary, submitRequest.ProposalRequest.Proposal);
 
@@ -122,14 +123,14 @@ namespace BandwidthScheduler.Server.Controllers
             add = null;
             commitments = null;
 
-            var availDict = IdentityAggregatorArray(e => e.UserId, dbEntities);
+            var availDict = dbEntities.ToDictionaryAggregate(e => e.UserId);
 
             foreach (var kv in availDict)
             {
                 availDict[kv.Key] = kv.Value.OrderBy(e => e.StartTime).ToArray();
             }
 
-            var proposalDict = IdentityAggregatorArray(e => e.UserId, submitRequest.ProposalResponse.ProposalUsers);
+            var proposalDict = submitRequest.ProposalResponse.ProposalUsers.ToDictionaryAggregate(e => e.UserId);
 
             foreach (var kv in proposalDict)
             {
@@ -304,53 +305,6 @@ namespace BandwidthScheduler.Server.Controllers
             }).ToArray();
 
             return totalApplicable;
-        }
-
-        [NonAction]
-        public static Dictionary<K, T[]> IdentityAggregatorArray<T,K>(Func<T, K> identity, IEnumerable<T> totalElements) where K : notnull
-        {
-            var elementCounts = new Dictionary<K, int>();
-
-            foreach (var element in totalElements)
-            {
-                if (!elementCounts.ContainsKey(identity(element)))
-                {
-                    elementCounts.Add(identity(element), 0);
-                }
-
-                elementCounts[identity(element)]++;
-            }
-
-            var elementArrays = new Dictionary<K, T[]>();
-
-            foreach (var element in elementCounts)
-            {
-                elementArrays.Add(element.Key, new T[element.Value]);
-                elementCounts[element.Key] = 0;
-            }
-
-            foreach (var element in totalElements)
-            {
-                elementArrays[identity(element)][elementCounts[identity(element)]] = element;
-                elementCounts[identity(element)]++;
-            }
-
-            return elementArrays;
-        }
-
-        [NonAction]
-        public static Dictionary<K, List<T>> IdentityAggregatorList<T,K>(Func<T, K> identity, IEnumerable<T> totalAvailabilities) where K : notnull
-        {
-            var dictArr = IdentityAggregatorArray(identity, totalAvailabilities);
-
-            var dictList = new Dictionary<K, List<T>>();
-
-            foreach(var kv in dictArr)
-            {
-                dictList.Add(kv.Key, kv.Value.ToList());
-            }
-
-            return dictList;
         }
 
         /// <summary>

@@ -33,5 +33,48 @@
         {
             return collection.CompareNumericOrDefault(selector, (f, s) => f < s);
         }
+
+        public static Dictionary<K, T[]> ToDictionaryAggregate<T, K>(this IEnumerable<T> collection, Func<T, K> key) where K : notnull
+        {
+            var elementCounts = new Dictionary<K, int>();
+
+            foreach (var element in collection)
+            {
+                if (!elementCounts.ContainsKey(key(element)))
+                {
+                    elementCounts.Add(key(element), 0);
+                }
+
+                elementCounts[key(element)]++;
+            }
+
+            var elementArrays = new Dictionary<K, T[]>();
+
+            foreach (var element in elementCounts)
+            {
+                elementArrays.Add(element.Key, new T[element.Value]);
+                elementCounts[element.Key] = 0;
+            }
+
+            foreach (var element in collection)
+            {
+                elementArrays[key(element)][elementCounts[key(element)]] = element;
+                elementCounts[key(element)]++;
+            }
+
+            return elementArrays;
+        }
+
+        public static Dictionary<T, O> SelectDictionaryValue<T, K, O>(this Dictionary<T, K> dictionary, Func<K, O> transform) where T : notnull
+        {
+            var outputDictionary = new Dictionary<T, O>();  
+
+            foreach (var kv in dictionary)
+            {
+                outputDictionary.Add(kv.Key, transform(kv.Value));
+            }
+
+            return outputDictionary;    
+        }
     }
 }

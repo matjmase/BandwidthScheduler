@@ -1,4 +1,5 @@
 using BandwidthScheduler.Server.Common.DataStructures;
+using BandwidthScheduler.Server.Common.Extensions;
 using BandwidthScheduler.Server.Controllers;
 using BandwidthScheduler.Server.DbModels;
 using BandwidthScheduler.Server.Models.PublishController.Request;
@@ -84,7 +85,7 @@ namespace BandwidthScheduler.Server.Test
                 }
             }).ToArray();
 
-            _applicabilities = PublishController.IdentityAggregatorArray(e => e.UserId, convert);   
+            _applicabilities = convert.ToDictionaryAggregate(e => e.UserId);   
 
             foreach(var kv in _applicabilities) 
             {
@@ -199,9 +200,9 @@ namespace BandwidthScheduler.Server.Test
                 Assert.Fail();
             }
 
-            var commitmentDict = PublishController.IdentityAggregatorArray(e => e.UserId, addCommitment);
-            var removeDict = PublishController.IdentityAggregatorArray(e => e.UserId, removeAvailability);
-            var addDict = PublishController.IdentityAggregatorArray(e => e.UserId, addAvailability);
+            var commitmentDict = addCommitment.ToDictionaryAggregate(e => e.UserId);
+            var removeDict = removeAvailability.ToDictionaryAggregate(e => e.UserId);
+            var addDict = addAvailability.ToDictionaryAggregate(e => e.UserId);
             
             if (addDict.Count() != 0)
             {
