@@ -3,7 +3,6 @@ using BandwidthScheduler.Server.DbModels;
 using BandwidthScheduler.Server.Models;
 using BandwidthScheduler.Server.Models.Shared.Request;
 using BandwidthScheduler.Server.Models.StaffController.Request;
-using BandwidthScheduler.Server.Models.StaffController.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -79,7 +78,7 @@ namespace BandwidthScheduler.Server.Controllers
             var teamUsers = _db.UserTeams.Include(e => e.User).Where(e => e.TeamId == id).Select(e => e.User);
             var otherUsers = _db.Users.Where(e => !teamUsers.Contains(e));
 
-            return Ok(new TeamAndOtherUsers()
+            return Ok(new 
             {
                 TeamUsers = await teamUsers.ToArrayAsync(),
                 AllOtherUsers = await otherUsers.ToArrayAsync()
