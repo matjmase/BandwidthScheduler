@@ -297,9 +297,8 @@ namespace BandwidthScheduler.Server.Controllers
             var totalApplicable = await _db.UserRoles
                 .Where(e => e.RoleId == (int)AuthenticationRole.User) // role filtering
                 .Include(e => e.User).ThenInclude(e => e.UserTeams) // userteam include
-                .Include(e => e.User).ThenInclude(e => e.Availabilities) // availabilities include
-                .Select(e => e.User).SelectMany(e => e.UserTeams) // userteam nav
-                .Where(e => e.TeamId == request.SelectedTeam.Id) // userteam filter
+                .Where(e => e.User.UserTeams.Any(e => e.TeamId == request.SelectedTeam.Id)) // userteam filter
+                .Include(e => e.User).ThenInclude(e => e.Availabilities).ThenInclude(e => e.User) // availabilities include with user
                 .Select(e => e.User).SelectMany(e => e.Availabilities) // availabilies nav
                 .Where(e => e.StartTime >= start && e.EndTime <= end).OrderBy(e => e.StartTime).ToArrayAsync(); // availability filter
             totalApplicable = totalApplicable.Select(e =>
