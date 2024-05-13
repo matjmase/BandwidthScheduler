@@ -113,7 +113,7 @@ namespace BandwidthScheduler.Server.Controllers
             streaks = TimeFrameFunctions.CreateStreaksAvailability(streaks.ToArray());
             var captured = await GetAvailabilityTimeWindowsCaptured(_db.Availabilities, current.Id, request.RangeRequested.Start, request.RangeRequested.End).OrderBy(e => e.StartTime).ToListAsync();
 
-            IdentifyRedundancy(streaks, captured, out var toAdd, out var toRemove);
+            TimeFrameFunctions.IdentifyRedundancyAvailability(streaks, captured, out var toAdd, out var toRemove);
 
             _db.Availabilities.RemoveRange(toRemove);
             await _db.Availabilities.AddRangeAsync(toAdd);
