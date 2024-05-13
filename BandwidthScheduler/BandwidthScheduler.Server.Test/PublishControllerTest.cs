@@ -46,15 +46,6 @@ namespace BandwidthScheduler.Server.Test
             _schedule = schedule.ToArray();
 
             var applicabilities = new List<UserApplicabilityTestingModel>();
-            for (var i = _startTime; i < _endTime; i = i.AddMinutes(_timeDiffMinutes))
-            {
-                schedule.Add(new ScheduleProposalAmount()
-                {
-                    StartTime = i,
-                    EndTime = i.AddMinutes(_timeDiffMinutes),
-                    Employees = _totalEmployees
-                });
-            }
 
             for (var i = 0; i < _numberOfUsers; i++) 
             {
@@ -93,29 +84,15 @@ namespace BandwidthScheduler.Server.Test
             }
         }
 
-        [Test]
-        public void TestStreaks()
-        {
-            var streaks = PublishController.CreateStreaks(_applicabilities);
-
-            for (var i = 0; i < _numberOfUsers; i++)
-            {
-                var totalStreak = Math.Ceiling((_endTime - _startTime).TotalMinutes / _timeDiffMinutes / (i + 1));
-                if (!(i == 0 && (streaks[i].Count == 1) || totalStreak == streaks[i].Count))
-                {
-                    Assert.Fail();
-                }
-            }
-        }
-
         /// <summary>
         /// Designed for time intervals as opposed to the continuous/event based nature of the algorithm in production.
         /// </summary>
         [Test]
         public void TestStreakScoping()
         {
-            var streaks = PublishController.CreateStreaks(_applicabilities);
-            var scoped = PublishController.ScopeStreakToWindow(streaks, _schedule);
+            var streaks = AvailabilityController.CreateStreaksForAll(_applicabilities); // All Db will be continuous
+
+            var scoped = PublishController.ScopeStreakToWindow(streaks.SelectDictionaryValue(e => e.ToArray()), _schedule);
 
             var currHeap = new Heap<ScheduleProposalUser>((f, s) => f.EndTime < s.EndTime);
 

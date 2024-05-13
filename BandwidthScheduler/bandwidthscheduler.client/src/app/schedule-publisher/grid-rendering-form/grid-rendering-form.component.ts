@@ -15,7 +15,6 @@ export class GridRenderingFormComponent {
 
   public Submit(form: NgForm) {
     const model: GridRenderingFormModel = {
-      currentDate: form.value.date as Date,
       maxEmployees: form.value.maxEmployees as number,
     };
 

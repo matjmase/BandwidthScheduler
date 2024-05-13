@@ -50,6 +50,9 @@ import { GridRenderingProposalComponent } from './schedule-publisher/grid-render
 import { GridRenderingGeneratedComponent } from './schedule-publisher/grid-rendering-generated/grid-rendering-generated.component';
 import { ColorElementDirective } from './directives/color-element.directive';
 import { SpinnerCardComponent } from './commonControls/spinner-card/spinner-card.component';
+import { TimePickerSnapComponent } from './commonControls/time-picker-snap/time-picker-snap.component';
+import { DateTimeRangeSelectorComponent } from './commonControls/date-time-range-selector/date-time-range-selector.component';
+import { DateTimeRangeSelectorValidatorDirective } from './validators/date-time-range-selector-validator.directive';
 
 @NgModule({
   declarations: [
@@ -74,6 +77,9 @@ import { SpinnerCardComponent } from './commonControls/spinner-card/spinner-card
     GridRenderingGeneratedComponent,
     ColorElementDirective,
     SpinnerCardComponent,
+    TimePickerSnapComponent,
+    DateTimeRangeSelectorComponent,
+    DateTimeRangeSelectorValidatorDirective,
   ],
   imports: [
     BrowserModule,

@@ -1,6 +1,6 @@
 import { Component, EventEmitter, OnInit, Output, output } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { ITeam } from '../../models/ITeam';
+import { ITeam } from '../../models/db/ITeam';
 import { BackendConnectService } from '../../services/backend-connect.service';
 
 @Component({

@@ -1,6 +1,8 @@
-﻿using BandwidthScheduler.Server.Common.DataStructures;
+﻿using Azure.Core;
+using BandwidthScheduler.Server.Common.DataStructures;
 using BandwidthScheduler.Server.Common.Extensions;
 using BandwidthScheduler.Server.Common.Role;
+using BandwidthScheduler.Server.Controllers.Common;
 using BandwidthScheduler.Server.DbModels;
 using BandwidthScheduler.Server.Models.PublishController.Request;
 using BandwidthScheduler.Server.Models.PublishController.Response;
@@ -10,7 +12,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 
 namespace BandwidthScheduler.Server.Controllers
 {
@@ -41,9 +46,7 @@ namespace BandwidthScheduler.Server.Controllers
 
             var userAvailabilityArrays = totalAvailabilities.ToDictionaryAggregate(e => e.UserId);
 
-            var streaks = CreateStreaks(userAvailabilityArrays);
-
-            var output = ScopeStreakToWindow(streaks, proposalRequest.Proposal);
+            var output = ScopeStreakToWindow(userAvailabilityArrays, proposalRequest.Proposal);
 
             return Ok(new ScheduleProposalResponse() { ProposalUsers = output.ToArray() });
         }
@@ -69,16 +72,53 @@ namespace BandwidthScheduler.Server.Controllers
                 return BadRequest("Invalid Proposal");
             }
 
-            if (!ProposalSubmitDatabaseCheck(totalApplicable, submitRequest, out var removedAvailabilities, out var addedAvailabilities, out var proposalDict))
+            if (!ProposalSubmitDatabaseCheck(totalApplicable, submitRequest, out var removedAvailabilities, out var addedAvailabilities, out var totalProposals))
             {
                 return BadRequest("Availabilites have changed");
             }
 
-            // validation done, submit to DB
+            /// validation done, Get Time window
+
+            var sortedRequestWindows = submitRequest.ProposalRequest.Proposal.OrderBy(e => e.StartTime);
+            var start = sortedRequestWindows.First().StartTime;
+            var end = sortedRequestWindows.Last().EndTime;
+
+            // stitch sides
+
+            var proposalDict = totalProposals.ToDictionaryAggregate(e => e.UserId).SelectDictionaryValue(e => e.ToList());
+
+            foreach (var kv in proposalDict)
+            {
+                var userId = kv.Key;
+
+                var encapsulate = await GetTimeWindowCommitmentEncapsulated(_db.Commitments, userId, start, end).FirstOrDefaultAsync();
+                var left = await GetCommitmentLeftNeighbor(_db.Commitments, userId, start, end).FirstOrDefaultAsync();
+                var right = await GetCommitmentRightNeighbor(_db.Commitments, userId, start, end).FirstOrDefaultAsync();
+
+                if (!TimeFrameFunctions.StitchSidesCommitment(userId, start, end, encapsulate, left, right, _db.Commitments, out var leftResult, out var rightResult))
+                {
+                    return BadRequest("Database corrupted");
+                }
+
+                if (leftResult != null)
+                {
+                    kv.Value.Add(leftResult);
+                }
+                if (rightResult != null)
+                {
+                    kv.Value.Add(rightResult);
+                }
+
+                proposalDict[userId] = TimeFrameFunctions.CreateStreaksCommitment(kv.Value.ToArray());
+            }
+
+            //
+
+            totalProposals = proposalDict.SelectMany(e => e.Value).ToArray();
 
             _db.Availabilities.RemoveRange(_db.Availabilities.Where(e => removedAvailabilities.Select(a => a.Id).Contains(e.Id)));
             await _db.Availabilities.AddRangeAsync(addedAvailabilities);
-            await _db.Commitments.AddRangeAsync(proposalDict);
+            await _db.Commitments.AddRangeAsync(totalProposals);
 
             await _db.SaveChangesAsync();
 
@@ -89,7 +129,7 @@ namespace BandwidthScheduler.Server.Controllers
         private bool ProposalSubmitReproducibilityCheck(ScheduleSubmitRequest submitRequest)
         {
             var availabilities = submitRequest.ProposalResponse.ProposalUsers.Select(e => new Availability() { UserId = e.UserId, StartTime = e.StartTime, EndTime = e.EndTime, User = new User() { Email = e.Email } }).ToArray();
-            var availabilityDictionary = availabilities.ToDictionaryAggregate(e => e.UserId).SelectDictionaryValue(v => v.ToList());
+            var availabilityDictionary = availabilities.ToDictionaryAggregate(e => e.UserId);
 
             var userProposals = ScopeStreakToWindow(availabilityDictionary, submitRequest.ProposalRequest.Proposal);
 
@@ -118,6 +158,70 @@ namespace BandwidthScheduler.Server.Controllers
         }
 
         [NonAction]
+        private static IQueryable<Commitment> GetTimeWindowCommitmentEncapsulated(DbSet<Commitment> db, int id, DateTime start, DateTime end)
+        {
+            return db.Where(CommitmentTimeWindowEncapsulatedExpression(id, start, end));
+        }
+
+        [NonAction]
+        public static Expression<Func<Commitment, bool>> CommitmentTimeWindowEncapsulatedExpression(int id, DateTime start, DateTime end)
+        {
+            return e =>
+            e.UserId == id &&
+            (
+                e.StartTime < start && e.EndTime > end          // encapsulated
+            );
+        }
+
+
+        [NonAction]
+        private static IQueryable<Commitment> GetCommitmentRightNeighbor(DbSet<Commitment> db, int id, DateTime start, DateTime end)
+        {
+            return db.Where(CommitmentRightNeighborExpression(id, start, end));
+        }
+
+        [NonAction]
+        public static Expression<Func<Commitment, bool>> CommitmentRightNeighborExpression(int id, DateTime start, DateTime end)
+        {
+            return e =>
+            e.UserId == id &&
+            (
+                e.EndTime > end && e.StartTime >= start && e.StartTime <= end        // caught the start
+            );
+        }
+
+        [NonAction]
+        private static IQueryable<Commitment> GetCommitmentLeftNeighbor(DbSet<Commitment> db, int id, DateTime start, DateTime end)
+        {
+            return db.Where(CommitmentLeftNeighborExpression(id, start, end));
+        }
+
+        [NonAction]
+        public static Expression<Func<Commitment, bool>> CommitmentLeftNeighborExpression(int id, DateTime start, DateTime end)
+        {
+            return e =>
+            e.UserId == id &&
+            (
+                e.StartTime < start && e.EndTime >= start && e.EndTime <= end               // caught the end
+            );
+        }
+
+        [NonAction]
+        private static IQueryable<Commitment> GetCommitmentTimeWindowsCaptured(DbSet<Commitment> db, IEnumerable<int> ids, DateTime start, DateTime end)
+        {
+            return db.Where(CommitmentTimeWindowsCapturedExpression(ids, start, end));
+        }
+
+        [NonAction]
+        public static Expression<Func<Commitment, bool>> CommitmentTimeWindowsCapturedExpression(IEnumerable<int> ids, DateTime start, DateTime end)
+        {
+            return e => ids.Contains(e.UserId) &&
+            (
+                start <= e.StartTime && end >= e.EndTime            // captured
+            );
+        }
+
+        [NonAction]
         private bool ProposalSubmitDatabaseCheck(Availability[] dbEntities, ScheduleSubmitRequest submitRequest, out List<Availability> remove, out List<Availability> add, out Commitment[] commitments)
         {
             remove = null;
@@ -137,8 +241,6 @@ namespace BandwidthScheduler.Server.Controllers
             {
                 proposalDict[kv.Key] = kv.Value.OrderBy(e => e.StartTime).ToArray();
             }
-
-            // Not doing scoping so they will be different.
 
             var removedAvailabilities = new List<Availability>();
             var addedAvailabilities = new List<Availability>();
@@ -174,7 +276,7 @@ namespace BandwidthScheduler.Server.Controllers
         [NonAction]
         public static bool ProcessAvailabilitiesAndProposals<T, K>(Dictionary<int, T[]> availabilities, Func<T, DateTime> availStartFunc, Func<T, DateTime> availEndFunc, Dictionary<int, K[]> proposals, Func<K, DateTime> proposalStartFunc, Func<K, DateTime> proposalEndFunc, Action<int, DateTime, DateTime> addAvailability, Action<T> removeAvailability, Action<K> addCommitment)
         {
-            foreach (var kv in availabilities)
+            foreach (var kv in proposals)
             {
                 var userId = kv.Key;
 
@@ -300,63 +402,11 @@ namespace BandwidthScheduler.Server.Controllers
                 .Where(e => e.User.UserTeams.Any(e => e.TeamId == request.SelectedTeam.Id)) // userteam filter
                 .Include(e => e.User).ThenInclude(e => e.Availabilities).ThenInclude(e => e.User) // availabilities include with user
                 .Select(e => e.User).SelectMany(e => e.Availabilities) // availabilies nav
-                .Where(e => e.StartTime >= start && e.EndTime <= end).OrderBy(e => e.StartTime).ToArrayAsync(); // availability filter
-            totalApplicable = totalApplicable.Select(e =>
-            new Availability()
-            {
-                Id = e.Id,
-                UserId = e.UserId,
-                User = e.User,
-                StartTime = DateTime.SpecifyKind(e.StartTime, DateTimeKind.Utc),
-                EndTime = DateTime.SpecifyKind(e.EndTime, DateTimeKind.Utc),
-            }).ToArray();
+                .Where(e => !(e.EndTime <= start || e.StartTime >= end )).OrderBy(e => e.StartTime).ToArrayAsync(); // availability filter
+
+            totalApplicable.Foreach(e => e.ExplicitlyMarkDateTimesAsUtc());
 
             return totalApplicable;
-        }
-
-        /// <summary>
-        /// Make the events continuous to "streaks"
-        /// </summary>
-        /// <param name="segmentedAvailability"></param>
-        /// <returns></returns>
-        [NonAction]
-        public static Dictionary<int, List<Availability>> CreateStreaks(Dictionary<int, Availability[]> segmentedAvailability)
-        {
-            var streaks = new Dictionary<int, List<Availability>>();
-            foreach (var userId in segmentedAvailability.Keys)
-            {
-                var sorted = segmentedAvailability[userId].OrderBy(e => e.StartTime);
-
-                streaks.Add(userId, new List<Availability>());
-
-                Availability? lastApplicable = null;
-                foreach (var applicability in sorted)
-                {
-                    if (lastApplicable == null)
-                    {
-                        lastApplicable = applicability;
-                    }
-                    else
-                    {
-                        if (lastApplicable.EndTime == applicability.StartTime)
-                        {
-                            lastApplicable.EndTime = applicability.EndTime;
-                        }
-                        else
-                        {
-                            streaks[userId].Add(lastApplicable);
-                            lastApplicable = applicability;
-                        }
-                    }
-                }
-
-                if (lastApplicable != null)
-                {
-                    streaks[userId].Add(lastApplicable);
-                }
-            }
-
-            return streaks;
         }
 
         /// <summary>
@@ -366,7 +416,7 @@ namespace BandwidthScheduler.Server.Controllers
         /// <param name="window"></param>
         /// <returns></returns>
         [NonAction]
-        public static HashSet<ScheduleProposalUser> ScopeStreakToWindow(Dictionary<int, List<Availability>> streaks, ScheduleProposalAmount[] window)
+        public static HashSet<ScheduleProposalUser> ScopeStreakToWindow(Dictionary<int, Availability[]> streaks, ScheduleProposalAmount[] window)
         {
 
             var sortedStarts = streaks.Values.SelectMany(e => e).OrderBy(e => e.StartTime);

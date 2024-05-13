@@ -1,10 +1,18 @@
-﻿using BandwidthScheduler.Server.Common.Static;
+﻿using BandwidthScheduler.Server.Common.Extensions;
+using BandwidthScheduler.Server.Common.Static;
+using BandwidthScheduler.Server.Controllers.Common;
 using BandwidthScheduler.Server.DbModels;
-using BandwidthScheduler.Server.Models.Availability.Response;
+using BandwidthScheduler.Server.Models.Availability.RequestController;
 using BandwidthScheduler.Server.Models.AvailabilityController.Request;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Primitives;
+using System.IO;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 
 namespace BandwidthScheduler.Server.Controllers
 {
@@ -22,71 +30,293 @@ namespace BandwidthScheduler.Server.Controllers
             _config = config;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAsync([FromHeader] DateTime DayRequested)
+        [HttpGet()]
+        public async Task<IActionResult> GetAsync([FromHeader(Name = "start")] string startString, [FromHeader(Name = "end")] string endString)
         {
-            var date = DayRequested.ToUniversalTime();
+            DateTime start = new DateTime();
+            DateTime end = new DateTime();
+            try
+            {
+                start  = DateTime.Parse(startString);
+                end = DateTime.Parse(endString);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("start and or end could not be parsed");
+            }
+
+            start = start.ToUniversalTime();
+            end = end.ToUniversalTime();
             var current = DbModelFunction.GetCurrentUser(HttpContext);
 
-            var availabilities = await Compare24Hours(_db.Availabilities, current.Id, date).ToArrayAsync();
-            availabilities = availabilities.Select(e => new Availability()
-            {
-                StartTime = DateTime.SpecifyKind(e.StartTime, DateTimeKind.Utc),
-                EndTime = DateTime.SpecifyKind(e.EndTime, DateTimeKind.Utc),
-                Id = e.Id,
-                User = e.User,
-                UserId = e.UserId
-            }).ToArray();
+            var availabilities = await GetAnyAvailabilityOrAdjacentIntersection(_db.Availabilities, current.Id, start, end).ToArrayAsync();
 
-            var commitments = await _db.Commitments.Include(e => e.Team).Include(e => e.User).Where(e => e.UserId == current.Id &&
-            date <= e.StartTime
-            &&
-            date.AddHours(24) > e.StartTime).ToArrayAsync();
-            
-            var clientCommitment = commitments.Select(e => new ClientCommitment()
-            {
-                Id = e.Id,
-                UserId = e.UserId,
-                UserEmail = e.User.Email,
-                TeamId = e.TeamId,
-                TeamName = e.Team.Name,
-                StartTime = DateTime.SpecifyKind(e.StartTime, DateTimeKind.Utc),
-                EndTime = DateTime.SpecifyKind(e.EndTime, DateTimeKind.Utc),
-            }).ToArray();
+
+            var commitments = await GetCommitmentAnyIntersection(_db.Commitments, current.Id, start, end).ToArrayAsync();
+
+            commitments.Foreach(e => e.NullifyObjectDepth());
+            commitments.Foreach(e => e.ExplicitlyMarkDateTimesAsUtc());
+
+            availabilities.Foreach(e => e.NullifyObjectDepth());
+            availabilities.Foreach(e => e.ExplicitlyMarkDateTimesAsUtc());
 
             return Ok(new
             {
                 Availabilities = availabilities,
-                Commitments = clientCommitment
+                Commitments = commitments
             });
         }
 
         [HttpPut]
         public async Task<IActionResult> PutAsync([FromBody] AvailabilityPutRequest request)
         {
-            var date = request.DayRequested;
+            var range = request.RangeRequested;
             var current = DbModelFunction.GetCurrentUser(HttpContext);
+
+            if (!ValidateTimeFrames(request.RangeRequested.Start, request.RangeRequested.End, request.Times))
+            {
+                return BadRequest("Invalid time frames");
+            }
 
             for (var i = 0; i < request.Times.Length; i++)
             {
                 request.Times[i].UserId = current.Id;
             }
 
-            _db.Availabilities.RemoveRange(Compare24Hours(_db.Availabilities, current.Id, date));
-            _db.Availabilities.AddRange(request.Times);
+            var commitments = await GetCommitmentAnyIntersection(_db.Commitments, current.Id, request.RangeRequested.Start, request.RangeRequested.End).ToArrayAsync();
+            
+            if (!ValidateSeperation(request.Times, commitments))
+            {
+                return BadRequest("Commitment collision");
+            }
+
+            var streaks = TimeFrameFunctions.CreateStreaksAvailability(request.Times);
+
+            var encapsulate = await GetTimeWindowAvailabilityEncapsulated(_db.Availabilities, current.Id, request.RangeRequested.Start, request.RangeRequested.End).FirstOrDefaultAsync();
+            var left = await GetAvailabilityLeftNeighbor(_db.Availabilities, current.Id, request.RangeRequested.Start, request.RangeRequested.End).FirstOrDefaultAsync();
+            var right = await GetAvailabilityRightNeighbor(_db.Availabilities, current.Id, request.RangeRequested.Start, request.RangeRequested.End).FirstOrDefaultAsync();
+
+            if (!TimeFrameFunctions.StitchSidesAvailabilities(current.Id, request.RangeRequested.Start, request.RangeRequested.End, encapsulate, left, right, _db.Availabilities, out var leftResult, out var rightResult))
+            {
+                return BadRequest("Database corrupted");
+            }
+
+            if (leftResult != null)
+            {
+                streaks.Add(leftResult);
+            }
+            if (rightResult != null)
+            {
+                streaks.Add(rightResult);
+            }
+
+            streaks = TimeFrameFunctions.CreateStreaksAvailability(streaks.ToArray());
+            var captured = await GetAvailabilityTimeWindowsCaptured(_db.Availabilities, current.Id, request.RangeRequested.Start, request.RangeRequested.End).OrderBy(e => e.StartTime).ToListAsync();
+
+            IdentifyRedundancy(streaks, captured, out var toAdd, out var toRemove);
+
+            _db.Availabilities.RemoveRange(toRemove);
+            await _db.Availabilities.AddRangeAsync(toAdd);
 
             await _db.SaveChangesAsync();
 
             return Ok();
         }
+        [NonAction]
+        public static bool ValidateSeperation(IEnumerable<Availability> availabilities, IEnumerable<Commitment> commitments)
+        {
+            Func<Availability, Commitment, bool> intersection = (a, c) =>
+            {
+                return (
+                !(c.EndTime < a.StartTime || c.StartTime > a.EndTime)
+                );
+            };   
+
+            var availableEnum = availabilities.GetEnumerator();
+            var commitmentEnum = commitments.GetEnumerator();
+
+            var availableHasNext = availableEnum.MoveNext();
+            var commitmentHasNext = commitmentEnum.MoveNext();
+
+            while (availableHasNext && commitmentHasNext)
+            {
+                var availableValue = availableEnum.Current;
+                var commitmentValue = commitmentEnum.Current;
+
+                if (intersection(availableValue, commitmentValue))
+                {
+                    return false;
+                }
+
+                if (availableValue.StartTime < commitmentValue.StartTime)
+                {
+                    availableHasNext = availableEnum.MoveNext();
+                }
+                else
+                {
+                    commitmentHasNext = commitmentEnum.MoveNext();
+                }
+            }
+
+            return true;    
+        }
+
+        
 
         [NonAction]
-        public static IQueryable<Availability> Compare24Hours(DbSet<Availability> db, int id, DateTime date)
+        public static bool ValidateTimeFrames(DateTime start, DateTime end, Availability[] timeFrames)
         {
-            return db.Where(e => e.UserId == id &&
-            date <= e.StartTime
-            &&
-            date.AddHours(24) > e.StartTime);
+            var sorted = timeFrames.OrderBy(e => e.StartTime);
+
+            DateTime? firstStartTime = null;
+            DateTime? lastEndTime = null;   
+
+            foreach (var timeFrame in sorted)
+            {
+                if (timeFrame.StartTime >= timeFrame.EndTime)
+                {
+                    return false;
+                }
+
+                if (firstStartTime == null)
+                {
+                    firstStartTime = timeFrame.StartTime;
+                }
+
+                if (lastEndTime != null && lastEndTime.Value > timeFrame.StartTime)
+                {
+                    return false;
+                }
+
+                lastEndTime = timeFrame.EndTime;    
+            }
+
+            if (firstStartTime != null && firstStartTime.Value < start)
+            {
+                return false;
+            }
+
+            if (lastEndTime != null && lastEndTime.Value > end)
+            {
+                return false;
+            }
+
+            return true;    
+        }
+
+        [NonAction]
+        private static IQueryable<Availability> GetAnyAvailabilityOrAdjacentIntersection(DbSet<Availability> db, int id, DateTime start, DateTime end)
+        {
+            return db.Where(AvailabilityIntersectionOrAdjacentExpression(id, start, end));
+        }
+
+
+        [NonAction]
+        public static Expression<Func<Availability, bool>> AvailabilityIntersectionOrAdjacentExpression(int id, DateTime start, DateTime end)
+        {
+            return e =>
+            e.UserId == id &&
+            !(
+                (e.EndTime < start) || e.StartTime > end
+            );
+        }
+
+        [NonAction]
+        private static IQueryable<Availability> GetTimeWindowAvailabilityEncapsulated(DbSet<Availability> db, int id, DateTime start, DateTime end)
+        {
+            return db.Where(AvailabilityTimeWindowEncapsulatedExpression(id, start, end));
+        }
+
+        [NonAction]
+        public static Expression<Func<Availability, bool>> AvailabilityTimeWindowEncapsulatedExpression(int id, DateTime start, DateTime end)
+        {
+            return e =>
+            e.UserId == id &&
+            (
+                e.StartTime < start && e.EndTime > end          // encapsulated
+            );
+        }
+
+        [NonAction]
+        private static IQueryable<Availability> GetAvailabilityRightNeighbor(DbSet<Availability> db, int id, DateTime start, DateTime end)
+        {
+            return db.Where(AvailabilityRightNeighborExpression(id, start, end));
+        }
+
+        [NonAction]
+        public static Expression<Func<Availability, bool>> AvailabilityRightNeighborExpression(int id, DateTime start, DateTime end)
+        {
+            return e =>
+            e.UserId == id &&
+            (
+                e.EndTime > end && e.StartTime >= start && e.StartTime <= end        // caught the start
+            );
+        }
+
+        [NonAction]
+        private static IQueryable<Availability> GetAvailabilityLeftNeighbor(DbSet<Availability> db, int id, DateTime start, DateTime end)
+        {
+            return db.Where(AvailabilityLeftNeighborExpression(id, start, end));
+        }
+
+        [NonAction]
+        public static Expression<Func<Availability, bool>> AvailabilityLeftNeighborExpression(int id, DateTime start, DateTime end)
+        {
+            return e =>
+            e.UserId == id &&
+            (
+                e.StartTime < start && e.EndTime >= start && e.EndTime <= end               // caught the end
+            );
+        }
+
+        [NonAction]
+        private static IQueryable<Availability> GetAvailabilityTimeWindowsCaptured(DbSet<Availability> db, int id, DateTime start, DateTime end)
+        {
+            return db.Where(AvailabilityTimeWindowsCapturedExpression(id, start, end));
+        }
+
+        [NonAction]
+        public static Expression<Func<Availability, bool>> AvailabilityTimeWindowsCapturedExpression(int id, DateTime start, DateTime end)
+        {
+            return e => e.UserId == id &&
+            (
+                start <= e.StartTime && end >= e.EndTime            // captured
+            );
+        }
+
+        [NonAction]
+        private static IQueryable<Commitment> GetCommitmentAnyIntersection(IQueryable<Commitment> db, int id, DateTime start, DateTime end)
+        {
+            return db.Include(e => e.User).Include(e => e.Team).Where(CommitmentIntersectionExpression(id, start, end));
+        }
+
+        [NonAction]
+        public static Expression<Func<Commitment, bool>> CommitmentIntersectionExpression(int id, DateTime start, DateTime end)
+        {
+            return e =>
+            e.UserId == id &&
+            !(
+                (e.EndTime <= start) || e.StartTime >= end
+            );
+        }
+
+
+        /// <summary>
+        /// Make the events continuous to "streaks"
+        /// </summary>
+        /// <param name="segmentedAvailability"></param>
+        /// <returns></returns>
+        [NonAction]
+        public static Dictionary<int, List<Availability>> CreateStreaksForAll(Dictionary<int, Availability[]> segmentedAvailability)
+        {
+            var userStreaks = new Dictionary<int, List<Availability>>();
+
+            foreach (var userId in segmentedAvailability.Keys)
+            {
+                userStreaks.Add(userId, TimeFrameFunctions.CreateStreaksAvailability(segmentedAvailability[userId]));
+            }
+
+            return userStreaks;
         }
     }
 }

@@ -19,8 +19,6 @@ public partial class BandwidthSchedulerContext : DbContext
 
     public virtual DbSet<Password> Passwords { get; set; }
 
-    public virtual DbSet<Proposal> Proposals { get; set; }
-
     public virtual DbSet<Team> Teams { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
@@ -82,19 +80,6 @@ public partial class BandwidthSchedulerContext : DbContext
                 .HasForeignKey<Password>(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Password_User");
-        });
-
-        modelBuilder.Entity<Proposal>(entity =>
-        {
-            entity.ToTable("Proposal");
-
-            entity.Property(e => e.EndTime).HasColumnType("datetime");
-            entity.Property(e => e.StartTime).HasColumnType("datetime");
-
-            entity.HasOne(d => d.Team).WithMany(p => p.Proposals)
-                .HasForeignKey(d => d.TeamId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Proposal_Team");
         });
 
         modelBuilder.Entity<Team>(entity =>

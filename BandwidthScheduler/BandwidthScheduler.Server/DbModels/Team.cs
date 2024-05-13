@@ -13,7 +13,5 @@ public partial class Team
 
     public virtual ICollection<Commitment> Commitments { get; set; } = new List<Commitment>();
 
-    public virtual ICollection<Proposal> Proposals { get; set; } = new List<Proposal>();
-
     public virtual ICollection<UserTeam> UserTeams { get; set; } = new List<UserTeam>();
 }
