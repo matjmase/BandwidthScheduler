@@ -57,9 +57,11 @@ export class SchedulePublisherComponent {
 
     const newTimeFrames: TimeFrameModel[] = [];
 
+    console.log(this.SelectedTimeRange);
+
     for (
       let i = 0;
-      this.GetDateTransformed(i + 1, this.SelectedTimeRange!.start) <
+      this.GetDateTransformed(i + 1, this.SelectedTimeRange!.start) <=
       this.SelectedTimeRange!.end;
       i++
     ) {
@@ -78,7 +80,7 @@ export class SchedulePublisherComponent {
   public GetDateTransformed(increment: number, currentDate: Date): Date {
     const cloneDate = new Date(currentDate);
 
-    cloneDate.setMinutes(this.timeSpan * increment);
+    cloneDate.setMinutes(cloneDate.getMinutes() + this.timeSpan * increment);
 
     return cloneDate;
   }

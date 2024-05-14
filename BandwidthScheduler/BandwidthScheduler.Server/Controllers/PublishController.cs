@@ -3,6 +3,7 @@ using BandwidthScheduler.Server.Common.DataStructures;
 using BandwidthScheduler.Server.Common.Extensions;
 using BandwidthScheduler.Server.Common.Role;
 using BandwidthScheduler.Server.Controllers.Common;
+using BandwidthScheduler.Server.Controllers.Validation;
 using BandwidthScheduler.Server.DbModels;
 using BandwidthScheduler.Server.Models.PublishController.Request;
 using BandwidthScheduler.Server.Models.PublishController.Response;
@@ -37,13 +38,16 @@ namespace BandwidthScheduler.Server.Controllers
         [Authorize(Roles = "Scheduler")]
         public async Task<IActionResult> Proposal([FromBody] ScheduleProposalRequest proposalRequest)
         {
-            var totalAvailabilities = await GetAvailabilities(proposalRequest);
+            // Validate Proposal
 
-            if (totalAvailabilities == null)
+            if (!PublishControllerValidation.ValidateProposalRequest(proposalRequest, out var windowStart, out var windowEnd))
             {
                 return BadRequest("Invalid Proposal");
             }
 
+            // Scope availabilities to proposal window
+
+            var totalAvailabilities = await GetAvailabilities(proposalRequest.SelectedTeam.Id, windowStart, windowEnd);
             var userAvailabilityArrays = totalAvailabilities.ToDictionaryAggregate(e => e.UserId);
 
             var output = ScopeStreakToWindow(userAvailabilityArrays, proposalRequest.Proposal);
@@ -56,16 +60,23 @@ namespace BandwidthScheduler.Server.Controllers
         [Authorize(Roles = "Scheduler")]
         public async Task<IActionResult> ProposalSubmit([FromBody] ScheduleSubmitRequest submitRequest)
         {
-            /// Reproducibility checking
+            // Validate Proposal
+
+            if (!PublishControllerValidation.ValidateProposalSubmitRequest(submitRequest, out var windowStart, out var windowEnd))
+            {
+                return BadRequest("Invalid Proposal");
+            }
+
+            // Reproducibility checking
 
             if (!ProposalSubmitReproducibilityCheck(submitRequest))
             {
                 return BadRequest("Request and Response data has been altered");
             }
 
-            /// DB Checking.
+            // DB Checking.
 
-            var totalApplicable = await GetAvailabilities(submitRequest.ProposalRequest);
+            var totalApplicable = await GetAvailabilities(submitRequest.ProposalRequest.SelectedTeam.Id, windowStart, windowEnd);
 
             if (totalApplicable == null)
             {
@@ -77,25 +88,20 @@ namespace BandwidthScheduler.Server.Controllers
                 return BadRequest("Availabilites have changed");
             }
 
-            /// validation done, Get Time window
-
-            var sortedRequestWindows = submitRequest.ProposalRequest.Proposal.OrderBy(e => e.StartTime);
-            var start = sortedRequestWindows.First().StartTime;
-            var end = sortedRequestWindows.Last().EndTime;
-
-            // stitch sides
+            // validation done, stitch sides
 
             var proposalDict = totalProposals.ToDictionaryAggregate(e => e.UserId).SelectDictionaryValue(e => e.ToList());
+            var teamId = submitRequest.ProposalRequest.SelectedTeam.Id;
 
             foreach (var kv in proposalDict)
             {
                 var userId = kv.Key;
 
-                var encapsulate = await GetTimeWindowCommitmentEncapsulated(_db.Commitments, userId, start, end).FirstOrDefaultAsync();
-                var left = await GetCommitmentLeftNeighbor(_db.Commitments, userId, start, end).FirstOrDefaultAsync();
-                var right = await GetCommitmentRightNeighbor(_db.Commitments, userId, start, end).FirstOrDefaultAsync();
+                var encapsulate = await GetTimeWindowCommitmentEncapsulated(_db.Commitments, userId, teamId, windowStart, windowEnd).FirstOrDefaultAsync();
+                var left = await GetCommitmentLeftNeighbor(_db.Commitments, userId, teamId, windowStart, windowEnd).FirstOrDefaultAsync();
+                var right = await GetCommitmentRightNeighbor(_db.Commitments, userId, teamId, windowStart, windowEnd).FirstOrDefaultAsync();
 
-                if (!TimeFrameFunctions.StitchSidesCommitment(userId, start, end, encapsulate, left, right, _db.Commitments, out var leftResult, out var rightResult))
+                if (!TimeFrameFunctions.StitchSidesCommitment(userId, teamId, windowStart, windowEnd, encapsulate, left, right, _db.Commitments, out var leftResult, out var rightResult))
                 {
                     return BadRequest("Database corrupted");
                 }
@@ -158,16 +164,17 @@ namespace BandwidthScheduler.Server.Controllers
         }
 
         [NonAction]
-        private static IQueryable<Commitment> GetTimeWindowCommitmentEncapsulated(DbSet<Commitment> db, int id, DateTime start, DateTime end)
+        private static IQueryable<Commitment> GetTimeWindowCommitmentEncapsulated(DbSet<Commitment> db, int userId, int teamId, DateTime start, DateTime end)
         {
-            return db.Where(CommitmentTimeWindowEncapsulatedExpression(id, start, end));
+            return db.Where(CommitmentTimeWindowEncapsulatedExpression(userId, userId, start, end));
         }
 
         [NonAction]
-        public static Expression<Func<Commitment, bool>> CommitmentTimeWindowEncapsulatedExpression(int id, DateTime start, DateTime end)
+        public static Expression<Func<Commitment, bool>> CommitmentTimeWindowEncapsulatedExpression(int userId, int teamId, DateTime start, DateTime end)
         {
             return e =>
-            e.UserId == id &&
+            e.UserId == userId &&
+            e.TeamId == teamId &&
             (
                 e.StartTime < start && e.EndTime > end          // encapsulated
             );
@@ -175,47 +182,51 @@ namespace BandwidthScheduler.Server.Controllers
 
 
         [NonAction]
-        private static IQueryable<Commitment> GetCommitmentRightNeighbor(DbSet<Commitment> db, int id, DateTime start, DateTime end)
+        private static IQueryable<Commitment> GetCommitmentRightNeighbor(DbSet<Commitment> db, int userId, int teamId, DateTime start, DateTime end)
         {
-            return db.Where(CommitmentRightNeighborExpression(id, start, end));
+            return db.Where(CommitmentRightNeighborExpression(userId, teamId, start, end));
         }
 
         [NonAction]
-        public static Expression<Func<Commitment, bool>> CommitmentRightNeighborExpression(int id, DateTime start, DateTime end)
+        public static Expression<Func<Commitment, bool>> CommitmentRightNeighborExpression(int userId, int teamId, DateTime start, DateTime end)
         {
             return e =>
-            e.UserId == id &&
+            e.UserId == userId &&
+            e.TeamId == teamId && 
             (
                 e.EndTime > end && e.StartTime >= start && e.StartTime <= end        // caught the start
             );
         }
 
         [NonAction]
-        private static IQueryable<Commitment> GetCommitmentLeftNeighbor(DbSet<Commitment> db, int id, DateTime start, DateTime end)
+        private static IQueryable<Commitment> GetCommitmentLeftNeighbor(DbSet<Commitment> db, int userId, int teamId, DateTime start, DateTime end)
         {
-            return db.Where(CommitmentLeftNeighborExpression(id, start, end));
+            return db.Where(CommitmentLeftNeighborExpression(userId, teamId, start, end));
         }
 
         [NonAction]
-        public static Expression<Func<Commitment, bool>> CommitmentLeftNeighborExpression(int id, DateTime start, DateTime end)
+        public static Expression<Func<Commitment, bool>> CommitmentLeftNeighborExpression(int userId, int teamId, DateTime start, DateTime end)
         {
             return e =>
-            e.UserId == id &&
+            e.UserId == userId &&
+            e.TeamId == teamId &&   
             (
                 e.StartTime < start && e.EndTime >= start && e.EndTime <= end               // caught the end
             );
         }
 
         [NonAction]
-        private static IQueryable<Commitment> GetCommitmentTimeWindowsCaptured(DbSet<Commitment> db, IEnumerable<int> ids, DateTime start, DateTime end)
+        private static IQueryable<Commitment> GetCommitmentTimeWindowsCaptured(DbSet<Commitment> db, IEnumerable<int> ids, int teamId, DateTime start, DateTime end)
         {
-            return db.Where(CommitmentTimeWindowsCapturedExpression(ids, start, end));
+            return db.Where(CommitmentTimeWindowsCapturedExpression(ids, teamId, start, end));
         }
 
         [NonAction]
-        public static Expression<Func<Commitment, bool>> CommitmentTimeWindowsCapturedExpression(IEnumerable<int> ids, DateTime start, DateTime end)
+        public static Expression<Func<Commitment, bool>> CommitmentTimeWindowsCapturedExpression(IEnumerable<int> ids, int teamId, DateTime start, DateTime end)
         {
-            return e => ids.Contains(e.UserId) &&
+            return e => 
+            e.TeamId == teamId &&
+            ids.Contains(e.UserId) &&
             (
                 start <= e.StartTime && end >= e.EndTime            // captured
             );
@@ -384,25 +395,15 @@ namespace BandwidthScheduler.Server.Controllers
         }
 
         [NonAction]
-        public async Task<Availability[]?> GetAvailabilities(ScheduleProposalRequest request)
+        public async Task<Availability[]> GetAvailabilities(int teamId, DateTime windowStart, DateTime windowEnd)
         {
-            if (request == null || request.Proposal.Length == 0 || request.SelectedTeam == null)
-            {
-                return null;
-            }
-
-            var sorted = request.Proposal.OrderBy(e => e.StartTime).ToArray();
-
-            var start = sorted[0].StartTime.ToUniversalTime();
-            var end = sorted[sorted.Length - 1].EndTime.ToUniversalTime();
-
             var totalApplicable = await _db.UserRoles
                 .Where(e => e.RoleId == (int)AuthenticationRole.User) // role filtering
                 .Include(e => e.User).ThenInclude(e => e.UserTeams) // userteam include
-                .Where(e => e.User.UserTeams.Any(e => e.TeamId == request.SelectedTeam.Id)) // userteam filter
+                .Where(e => e.User.UserTeams.Any(e => e.TeamId == teamId)) // userteam filter
                 .Include(e => e.User).ThenInclude(e => e.Availabilities).ThenInclude(e => e.User) // availabilities include with user
                 .Select(e => e.User).SelectMany(e => e.Availabilities) // availabilies nav
-                .Where(e => !(e.EndTime <= start || e.StartTime >= end )).OrderBy(e => e.StartTime).ToArrayAsync(); // availability filter
+                .Where(e => !(e.EndTime <= windowStart || e.StartTime >= windowEnd)).OrderBy(e => e.StartTime).ToArrayAsync(); // availability filter
 
             totalApplicable.Foreach(e => e.ExplicitlyMarkDateTimesAsUtc());
 

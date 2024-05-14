@@ -1,9 +1,11 @@
 using BandwidthScheduler.Server.Common.DataStructures;
 using BandwidthScheduler.Server.Common.Extensions;
 using BandwidthScheduler.Server.Controllers;
+using BandwidthScheduler.Server.Controllers.Common;
 using BandwidthScheduler.Server.DbModels;
 using BandwidthScheduler.Server.Models.PublishController.Request;
 using BandwidthScheduler.Server.Models.PublishController.Response;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BandwidthScheduler.Server.Test
 {
@@ -85,12 +87,30 @@ namespace BandwidthScheduler.Server.Test
         }
 
         /// <summary>
+        /// Make the events continuous to "streaks"
+        /// </summary>
+        /// <param name="segmentedAvailability"></param>
+        /// <returns></returns>
+        [NonAction]
+        public static Dictionary<int, List<Availability>> CreateStreaksForAll(Dictionary<int, Availability[]> segmentedAvailability)
+        {
+            var userStreaks = new Dictionary<int, List<Availability>>();
+
+            foreach (var userId in segmentedAvailability.Keys)
+            {
+                userStreaks.Add(userId, TimeFrameFunctions.CreateStreaksAvailability(segmentedAvailability[userId]));
+            }
+
+            return userStreaks;
+        }
+
+        /// <summary>
         /// Designed for time intervals as opposed to the continuous/event based nature of the algorithm in production.
         /// </summary>
         [Test]
         public void TestStreakScoping()
         {
-            var streaks = AvailabilityController.CreateStreaksForAll(_applicabilities); // All Db will be continuous
+            var streaks = CreateStreaksForAll(_applicabilities); // All Db will be continuous
 
             var scoped = PublishController.ScopeStreakToWindow(streaks.SelectDictionaryValue(e => e.ToArray()), _schedule);
 

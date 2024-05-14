@@ -43,7 +43,6 @@ export class DateTimeRangeSelectorValidatorDirective implements Validator {
       errors['MissingEnd'] = true;
     }
 
-    console.log(errors);
     if (Object.keys(errors).length !== 0) return errors;
 
     const startTrans = start.TransformDate(date);

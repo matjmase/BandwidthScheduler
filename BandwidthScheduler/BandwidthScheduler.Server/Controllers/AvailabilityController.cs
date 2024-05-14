@@ -1,6 +1,7 @@
 ﻿using BandwidthScheduler.Server.Common.Extensions;
 using BandwidthScheduler.Server.Common.Static;
 using BandwidthScheduler.Server.Controllers.Common;
+using BandwidthScheduler.Server.Controllers.Validation;
 using BandwidthScheduler.Server.DbModels;
 using BandwidthScheduler.Server.Models.Availability.RequestController;
 using BandwidthScheduler.Server.Models.AvailabilityController.Request;
@@ -73,19 +74,16 @@ namespace BandwidthScheduler.Server.Controllers
             var range = request.RangeRequested;
             var current = DbModelFunction.GetCurrentUser(HttpContext);
 
-            if (!ValidateTimeFrames(request.RangeRequested.Start, request.RangeRequested.End, request.Times))
+            if (!AvailabilityControllerValidation.ValidateTimeFrames(request.RangeRequested.Start, request.RangeRequested.End, request.Times))
             {
                 return BadRequest("Invalid time frames");
             }
 
-            for (var i = 0; i < request.Times.Length; i++)
-            {
-                request.Times[i].UserId = current.Id;
-            }
+            request.Times.Foreach(e => { e.UserId = current.Id; });
 
             var commitments = await GetCommitmentAnyIntersection(_db.Commitments, current.Id, request.RangeRequested.Start, request.RangeRequested.End).ToArrayAsync();
             
-            if (!ValidateSeperation(request.Times, commitments))
+            if (!AvailabilityControllerValidation.ValidateAvaiabilityCommitmentSeperation(request.Times, commitments))
             {
                 return BadRequest("Commitment collision");
             }
@@ -121,87 +119,6 @@ namespace BandwidthScheduler.Server.Controllers
             await _db.SaveChangesAsync();
 
             return Ok();
-        }
-        [NonAction]
-        public static bool ValidateSeperation(IEnumerable<Availability> availabilities, IEnumerable<Commitment> commitments)
-        {
-            Func<Availability, Commitment, bool> intersection = (a, c) =>
-            {
-                return (
-                !(c.EndTime < a.StartTime || c.StartTime > a.EndTime)
-                );
-            };   
-
-            var availableEnum = availabilities.GetEnumerator();
-            var commitmentEnum = commitments.GetEnumerator();
-
-            var availableHasNext = availableEnum.MoveNext();
-            var commitmentHasNext = commitmentEnum.MoveNext();
-
-            while (availableHasNext && commitmentHasNext)
-            {
-                var availableValue = availableEnum.Current;
-                var commitmentValue = commitmentEnum.Current;
-
-                if (intersection(availableValue, commitmentValue))
-                {
-                    return false;
-                }
-
-                if (availableValue.StartTime < commitmentValue.StartTime)
-                {
-                    availableHasNext = availableEnum.MoveNext();
-                }
-                else
-                {
-                    commitmentHasNext = commitmentEnum.MoveNext();
-                }
-            }
-
-            return true;    
-        }
-
-        
-
-        [NonAction]
-        public static bool ValidateTimeFrames(DateTime start, DateTime end, Availability[] timeFrames)
-        {
-            var sorted = timeFrames.OrderBy(e => e.StartTime);
-
-            DateTime? firstStartTime = null;
-            DateTime? lastEndTime = null;   
-
-            foreach (var timeFrame in sorted)
-            {
-                if (timeFrame.StartTime >= timeFrame.EndTime)
-                {
-                    return false;
-                }
-
-                if (firstStartTime == null)
-                {
-                    firstStartTime = timeFrame.StartTime;
-                }
-
-                if (lastEndTime != null && lastEndTime.Value > timeFrame.StartTime)
-                {
-                    return false;
-                }
-
-                lastEndTime = timeFrame.EndTime;    
-            }
-
-            if (firstStartTime != null && firstStartTime.Value < start)
-            {
-                return false;
-            }
-
-            if (lastEndTime != null && lastEndTime.Value > end)
-            {
-                return false;
-            }
-
-            return true;    
         }
 
         [NonAction]
@@ -298,25 +215,6 @@ namespace BandwidthScheduler.Server.Controllers
             !(
                 (e.EndTime <= start) || e.StartTime >= end
             );
-        }
-
-
-        /// <summary>
-        /// Make the events continuous to "streaks"
-        /// </summary>
-        /// <param name="segmentedAvailability"></param>
-        /// <returns></returns>
-        [NonAction]
-        public static Dictionary<int, List<Availability>> CreateStreaksForAll(Dictionary<int, Availability[]> segmentedAvailability)
-        {
-            var userStreaks = new Dictionary<int, List<Availability>>();
-
-            foreach (var userId in segmentedAvailability.Keys)
-            {
-                userStreaks.Add(userId, TimeFrameFunctions.CreateStreaksAvailability(segmentedAvailability[userId]));
-            }
-
-            return userStreaks;
         }
     }
 }
