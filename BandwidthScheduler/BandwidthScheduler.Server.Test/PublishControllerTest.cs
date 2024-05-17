@@ -2,6 +2,7 @@ using BandwidthScheduler.Server.Common.DataStructures;
 using BandwidthScheduler.Server.Common.Extensions;
 using BandwidthScheduler.Server.Controllers;
 using BandwidthScheduler.Server.Controllers.Common;
+using BandwidthScheduler.Server.Controllers.Validation;
 using BandwidthScheduler.Server.DbModels;
 using BandwidthScheduler.Server.Models.PublishController.Request;
 using BandwidthScheduler.Server.Models.PublishController.Response;
@@ -119,7 +120,7 @@ namespace BandwidthScheduler.Server.Test
         {
             var streaks = CreateStreaksForAll(_applicabilities); // All Db will be continuous
 
-            var scoped = PublishController.ScopeStreakToWindow(streaks.SelectDictionaryValue(e => e.ToArray()), _schedule);
+            var scoped = ScheduleGeneration.ScopeStreakToWindow(streaks.SelectDictionaryValue(e => e.ToArray()), _schedule);
 
             var currHeap = new Heap<ScheduleProposalUser>((f, s) => f.EndTime < s.EndTime);
 
@@ -199,7 +200,7 @@ namespace BandwidthScheduler.Server.Test
             Action<Availability> removeAvailabilityFunc = e => { removeAvailability.Add(e); };
             Action<Availability> addCommitmentFunc = e => { addCommitment.Add(e); };
 
-            if (!PublishController.ProcessAvailabilitiesAndProposals(_applicabilities, start, end, _applicabilities, start, end, addAvailabilityFunc, removeAvailabilityFunc, addCommitmentFunc))
+            if (!PublishControllerValidation.ProcessAvailabilitiesAndProposals(_applicabilities, start, end, _applicabilities, start, end, addAvailabilityFunc, removeAvailabilityFunc, addCommitmentFunc))
             {
                 Assert.Fail();
             }
@@ -260,7 +261,7 @@ namespace BandwidthScheduler.Server.Test
                 shifted.Add(applicable.Key, applicable.Value.Select(e => new Availability() { UserId = e.UserId, StartTime = e.StartTime.AddMinutes(_timeDiffMinutes), EndTime = e.EndTime.AddMinutes(_timeDiffMinutes) }).ToArray());
             }
 
-            if (PublishController.ProcessAvailabilitiesAndProposals(_applicabilities, start, end, shifted, start, end, addAvailabilityFunc, removeAvailabilityFunc, addCommitmentFunc))
+            if (PublishControllerValidation.ProcessAvailabilitiesAndProposals(_applicabilities, start, end, shifted, start, end, addAvailabilityFunc, removeAvailabilityFunc, addCommitmentFunc))
             {
                 Assert.Fail();
             }
@@ -292,7 +293,7 @@ namespace BandwidthScheduler.Server.Test
                 shrink.Add(applicable.Key, applicable.Value.Select(e => new Availability() { UserId = e.UserId, StartTime = e.StartTime.AddTicks(halfLength), EndTime = e.EndTime.AddTicks(-halfLength) }).ToArray());
             }
 
-            if (!PublishController.ProcessAvailabilitiesAndProposals(_applicabilities, start, end, shrink, start, end, addAvailabilityFunc, removeAvailabilityFunc, addCommitmentFunc))
+            if (!PublishControllerValidation.ProcessAvailabilitiesAndProposals(_applicabilities, start, end, shrink, start, end, addAvailabilityFunc, removeAvailabilityFunc, addCommitmentFunc))
             {
                 Assert.Fail();
             }
