@@ -7,17 +7,17 @@ namespace BandwidthScheduler.Server.Controllers.Validation
     {
         public static bool ValidateTimeFrames(DateTime start, DateTime end, Availability[] timeFrames)
         {
-            if (!TimeFrameFunctions.ValidateTimeFrameNoIntersection(timeFrames, e => e.StartTime, e => e.EndTime, out var windowStart, out var windowEnd))
+            if (!TimeFrameFunctions.ValidateTimeFrameNoIntersection(timeFrames, e => e.StartTime, e => e.EndTime, out var actualStart, out var actualEnd))
             {
                 return false;
             }
 
-            if (windowStart < start)
+            if (actualStart < start)
             {
                 return false;
             }
 
-            if (windowEnd > end)
+            if (actualEnd > end)
             {
                 return false;
             }

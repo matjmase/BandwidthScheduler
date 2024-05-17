@@ -83,52 +83,179 @@ namespace BandwidthScheduler.Server.Controllers
                 return BadRequest("Invalid Proposal");
             }
 
-            if (!ProposalSubmitDatabaseCheck(totalApplicable, submitRequest, out var removedAvailabilities, out var addedAvailabilities, out var totalProposals))
+            if (!ProposalSubmitDatabaseCheck(totalApplicable, submitRequest, out var removedAvailabilities, out var addedAvailabilities, out var totalProposals) || removedAvailabilities == null || addedAvailabilities == null || totalProposals == null)
             {
                 return BadRequest("Availabilites have changed");
             }
 
-            // validation done, stitch sides
+            // validation done, merge with other commitments
 
-            var proposalDict = totalProposals.ToDictionaryAggregate(e => e.UserId).SelectDictionaryValue(e => e.ToList());
+            var toRemoveCommitments = new HashSet<Commitment>();
+
             var teamId = submitRequest.ProposalRequest.SelectedTeam.Id;
+
+            var proposalDict = totalProposals.ToDictionaryAggregate(e => e.UserId);
+            var capturedTws = await GetCommitmentTimeWindowsCaptured(_db.Commitments, proposalDict.Keys, teamId, windowStart, windowEnd).ToArrayAsync();
+            var capturedTwsDict = capturedTws.ToDictionaryAggregate(e => e.UserId);
+
+            foreach(var kv in proposalDict)
+            {
+                var userId = kv.Key;
+
+                if (!capturedTwsDict.ContainsKey(userId))
+                {
+                    continue;
+                }
+
+                var dbCommitments = capturedTwsDict[userId];
+                var proposal = kv.Value;
+
+                if (!TimeFrameFunctions.CreateStreaksCommitment(proposal.Union(dbCommitments), out var streaks) || streaks == null)
+                {
+                    return BadRequest("collision of proposal and db commitments");
+                }
+
+                TimeFrameFunctions.IdentifyRedundancyCommitment(streaks, dbCommitments, out var toAdd, out var toRemove);
+
+                proposalDict[userId] = toAdd.ToArray();
+                toRemoveCommitments.AddRange(toRemove);
+            }
+
+            // stitch sides
+
+            var encapsulateArr = await GetTimeWindowCommitmentEncapsulated(_db.Commitments, proposalDict.Keys, teamId, windowStart, windowEnd).ToArrayAsync();
+            var leftArr = await GetCommitmentLeftNeighbor(_db.Commitments, proposalDict.Keys, teamId, windowStart, windowEnd).ToArrayAsync();
+            var rightArr = await GetCommitmentRightNeighbor(_db.Commitments, proposalDict.Keys, teamId, windowStart, windowEnd).ToArrayAsync();
+
+            var encapsulateDict = encapsulateArr.ToDictionary(e => e.UserId);
+            var leftDict = leftArr.ToDictionary(e => e.UserId);
+            var rightDict = rightArr.ToDictionary(e => e.UserId);
 
             foreach (var kv in proposalDict)
             {
                 var userId = kv.Key;
 
-                var encapsulate = await GetTimeWindowCommitmentEncapsulated(_db.Commitments, userId, teamId, windowStart, windowEnd).FirstOrDefaultAsync();
-                var left = await GetCommitmentLeftNeighbor(_db.Commitments, userId, teamId, windowStart, windowEnd).FirstOrDefaultAsync();
-                var right = await GetCommitmentRightNeighbor(_db.Commitments, userId, teamId, windowStart, windowEnd).FirstOrDefaultAsync();
+                var encapsulate = encapsulateDict.GetValueOrDefault(userId);
+                var left = leftDict.GetValueOrDefault(userId);
+                var right = rightDict.GetValueOrDefault(userId);
 
-                if (!TimeFrameFunctions.StitchSidesCommitment(userId, teamId, windowStart, windowEnd, encapsulate, left, right, _db.Commitments, out var leftResult, out var rightResult))
+                if (!TimeFrameFunctions.StitchSidesCommitment(userId, teamId, windowStart, windowEnd, encapsulate, left, right, out var toAdd, out var toRemove))
                 {
                     return BadRequest("Database corrupted");
                 }
 
-                if (leftResult != null)
+                if (!TimeFrameFunctions.CreateStreaksCommitment(kv.Value.Union(toAdd), out var streaks) || streaks == null) 
                 {
-                    kv.Value.Add(leftResult);
-                }
-                if (rightResult != null)
-                {
-                    kv.Value.Add(rightResult);
+                    return ValidationProblem("Internal Error");
                 }
 
-                proposalDict[userId] = TimeFrameFunctions.CreateStreaksCommitment(kv.Value.ToArray());
+                proposalDict[userId] = streaks.ToArray();
+                toRemoveCommitments.AddRange(toRemove);
             }
 
-            //
+            // Put results in DB
 
             totalProposals = proposalDict.SelectMany(e => e.Value).ToArray();
 
             _db.Availabilities.RemoveRange(_db.Availabilities.Where(e => removedAvailabilities.Select(a => a.Id).Contains(e.Id)));
             await _db.Availabilities.AddRangeAsync(addedAvailabilities);
+            _db.Commitments.RemoveRange(toRemoveCommitments);
             await _db.Commitments.AddRangeAsync(totalProposals);
 
             await _db.SaveChangesAsync();
 
             return Ok();
+        }
+
+        [NonAction]
+        private bool MergeCommitments(IEnumerable<Commitment> insert, IEnumerable<Commitment> captured, out List<Commitment> result)
+        {
+            result = new List<Commitment>();
+
+            var captureEnum = captured.GetEnumerator();
+            var insertEnum = insert.GetEnumerator();
+
+            var captureHasNext = captureEnum.MoveNext();
+            var insertHasNext = insertEnum.MoveNext();
+
+            Func<Commitment, Commitment, bool> intersection = (f, s) => !(f.EndTime <= s.StartTime || f.StartTime >= s.EndTime);
+
+            Commitment? currentCommitment = null;
+
+            Func<Commitment, List<Commitment>, bool> processCommitment = (c, o) =>
+            {
+                if (currentCommitment == null)
+                {
+                    currentCommitment = new Commitment() { UserId = c.UserId, TeamId = c.TeamId, StartTime = c.StartTime, EndTime = c.EndTime };
+                }
+                else if (intersection(currentCommitment, c))
+                {
+                    return false;
+                }
+                else if (currentCommitment.EndTime == c.StartTime)
+                {
+                    currentCommitment.EndTime = c.EndTime;
+                }
+                else
+                {
+                    o.Add(currentCommitment);
+                    currentCommitment = new Commitment() { UserId = c.UserId, TeamId = c.TeamId, StartTime = c.StartTime, EndTime = c.EndTime };
+                }
+
+                return true;
+            };
+
+            while (captureHasNext && insertHasNext)
+            {
+                var captureValue = captureEnum.Current;
+                var insertValue = insertEnum.Current;
+
+                if (captureValue.StartTime < insertValue.StartTime)
+                {
+                    if (!processCommitment(captureValue, result))
+                    {
+                        return false;
+                    }
+                    captureHasNext = captureEnum.MoveNext();
+                }
+                else
+                {
+                    if (!processCommitment(insertValue, result))
+                    {
+                        return false;
+                    }
+                    insertHasNext = insertEnum.MoveNext();
+                }
+            }
+
+            while (captureHasNext)
+            {
+                var captureValue = captureEnum.Current;
+
+                if (!processCommitment(captureValue, result))
+                {
+                    return false;
+                }
+                captureHasNext = captureEnum.MoveNext();
+            }
+
+            while (insertHasNext)
+            {
+                var insertValue = insertEnum.Current;
+
+                if (!processCommitment(insertValue, result))
+                {
+                    return false;
+                }
+                insertHasNext = insertEnum.MoveNext();
+            }
+
+            if (currentCommitment != null)
+            {
+                result.Add(currentCommitment);
+            }
+
+            return true;
         }
 
         [NonAction]
@@ -164,17 +291,17 @@ namespace BandwidthScheduler.Server.Controllers
         }
 
         [NonAction]
-        private static IQueryable<Commitment> GetTimeWindowCommitmentEncapsulated(DbSet<Commitment> db, int userId, int teamId, DateTime start, DateTime end)
+        private static IQueryable<Commitment> GetTimeWindowCommitmentEncapsulated(DbSet<Commitment> db, IEnumerable<int> userIds, int teamId, DateTime start, DateTime end)
         {
-            return db.Where(CommitmentTimeWindowEncapsulatedExpression(userId, userId, start, end));
+            return db.Where(CommitmentTimeWindowEncapsulatedExpression(userIds, teamId, start, end));
         }
 
         [NonAction]
-        public static Expression<Func<Commitment, bool>> CommitmentTimeWindowEncapsulatedExpression(int userId, int teamId, DateTime start, DateTime end)
+        public static Expression<Func<Commitment, bool>> CommitmentTimeWindowEncapsulatedExpression(IEnumerable<int> userIds, int teamId, DateTime start, DateTime end)
         {
             return e =>
-            e.UserId == userId &&
             e.TeamId == teamId &&
+            userIds.Contains(e.UserId) &&
             (
                 e.StartTime < start && e.EndTime > end          // encapsulated
             );
@@ -182,58 +309,58 @@ namespace BandwidthScheduler.Server.Controllers
 
 
         [NonAction]
-        private static IQueryable<Commitment> GetCommitmentRightNeighbor(DbSet<Commitment> db, int userId, int teamId, DateTime start, DateTime end)
+        private static IQueryable<Commitment> GetCommitmentRightNeighbor(DbSet<Commitment> db, IEnumerable<int> userIds, int teamId, DateTime start, DateTime end)
         {
-            return db.Where(CommitmentRightNeighborExpression(userId, teamId, start, end));
+            return db.Where(CommitmentRightNeighborExpression(userIds, teamId, start, end));
         }
 
         [NonAction]
-        public static Expression<Func<Commitment, bool>> CommitmentRightNeighborExpression(int userId, int teamId, DateTime start, DateTime end)
+        public static Expression<Func<Commitment, bool>> CommitmentRightNeighborExpression(IEnumerable<int> userIds, int teamId, DateTime start, DateTime end)
         {
             return e =>
-            e.UserId == userId &&
-            e.TeamId == teamId && 
+            e.TeamId == teamId &&
+            userIds.Contains(e.UserId) &&
             (
                 e.EndTime > end && e.StartTime >= start && e.StartTime <= end        // caught the start
             );
         }
 
         [NonAction]
-        private static IQueryable<Commitment> GetCommitmentLeftNeighbor(DbSet<Commitment> db, int userId, int teamId, DateTime start, DateTime end)
+        private static IQueryable<Commitment> GetCommitmentLeftNeighbor(DbSet<Commitment> db, IEnumerable<int> userIds, int teamId, DateTime start, DateTime end)
         {
-            return db.Where(CommitmentLeftNeighborExpression(userId, teamId, start, end));
+            return db.Where(CommitmentLeftNeighborExpression(userIds, teamId, start, end));
         }
 
         [NonAction]
-        public static Expression<Func<Commitment, bool>> CommitmentLeftNeighborExpression(int userId, int teamId, DateTime start, DateTime end)
+        public static Expression<Func<Commitment, bool>> CommitmentLeftNeighborExpression(IEnumerable<int> userIds, int teamId, DateTime start, DateTime end)
         {
             return e =>
-            e.UserId == userId &&
-            e.TeamId == teamId &&   
+            e.TeamId == teamId &&
+            userIds.Contains(e.UserId) &&
             (
                 e.StartTime < start && e.EndTime >= start && e.EndTime <= end               // caught the end
             );
         }
 
         [NonAction]
-        private static IQueryable<Commitment> GetCommitmentTimeWindowsCaptured(DbSet<Commitment> db, IEnumerable<int> ids, int teamId, DateTime start, DateTime end)
+        private static IQueryable<Commitment> GetCommitmentTimeWindowsCaptured(DbSet<Commitment> db, IEnumerable<int> userIds, int teamId, DateTime start, DateTime end)
         {
-            return db.Where(CommitmentTimeWindowsCapturedExpression(ids, teamId, start, end));
+            return db.Where(CommitmentTimeWindowsCapturedExpression(userIds, teamId, start, end));
         }
 
         [NonAction]
-        public static Expression<Func<Commitment, bool>> CommitmentTimeWindowsCapturedExpression(IEnumerable<int> ids, int teamId, DateTime start, DateTime end)
+        public static Expression<Func<Commitment, bool>> CommitmentTimeWindowsCapturedExpression(IEnumerable<int> userIds, int teamId, DateTime start, DateTime end)
         {
             return e => 
             e.TeamId == teamId &&
-            ids.Contains(e.UserId) &&
+            userIds.Contains(e.UserId) &&
             (
                 start <= e.StartTime && end >= e.EndTime            // captured
             );
         }
 
         [NonAction]
-        private bool ProposalSubmitDatabaseCheck(Availability[] dbEntities, ScheduleSubmitRequest submitRequest, out List<Availability> remove, out List<Availability> add, out Commitment[] commitments)
+        private bool ProposalSubmitDatabaseCheck(Availability[] dbEntities, ScheduleSubmitRequest submitRequest, out List<Availability>? remove, out List<Availability>? add, out Commitment[]? commitments)
         {
             remove = null;
             add = null;

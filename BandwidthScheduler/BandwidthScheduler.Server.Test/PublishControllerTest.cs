@@ -98,7 +98,14 @@ namespace BandwidthScheduler.Server.Test
 
             foreach (var userId in segmentedAvailability.Keys)
             {
-                userStreaks.Add(userId, TimeFrameFunctions.CreateStreaksAvailability(segmentedAvailability[userId]));
+                if (!TimeFrameFunctions.CreateStreaksAvailability(segmentedAvailability[userId], out var streaks) || streaks == null)
+                {
+                    Assert.Fail();
+                }
+                else
+                {
+                    userStreaks.Add(userId, streaks);
+                }
             }
 
             return userStreaks;

@@ -2,7 +2,7 @@
 {
     public static class CollectionExtensions
     {
-        public static T CompareOrDefault<T>(this IEnumerable<T> collection, Func<T, T, bool> firstIsDesired)
+        public static T? CompareOrDefault<T>(this IEnumerable<T> collection, Func<T, T, bool> firstIsDesired)
         {
             var output = default(T);
             var first = true;
@@ -19,17 +19,17 @@
             return output;
         }
 
-        public static T CompareNumericOrDefault<T>(this IEnumerable<T> collection, Func<T, double> selector, Func<double, double, bool> firstIsDesired)
+        public static T? CompareNumericOrDefault<T>(this IEnumerable<T> collection, Func<T, double> selector, Func<double, double, bool> firstIsDesired)
         {
             return collection.CompareOrDefault((f, s) => firstIsDesired(selector(f), selector(s)));
         }
 
-        public static T MaxOrDefault<T>(this IEnumerable<T> collection, Func<T, double> selector)
+        public static T? MaxOrDefault<T>(this IEnumerable<T> collection, Func<T, double> selector)
         {
             return collection.CompareNumericOrDefault(selector, (f, s) => f > s);
         }
 
-        public static T MinOrDefault<T>(this IEnumerable<T> collection, Func<T, double> selector)
+        public static T? MinOrDefault<T>(this IEnumerable<T> collection, Func<T, double> selector)
         {
             return collection.CompareNumericOrDefault(selector, (f, s) => f < s);
         }
@@ -82,6 +82,14 @@
             foreach (var item in collection)
             { 
                 action(item);
+            }
+        }
+
+        public static void AddRange<T>(this HashSet<T> collection, IEnumerable<T> newValues)
+        {
+            foreach (var value in newValues)
+            {
+                collection.Add(value);
             }
         }
     }

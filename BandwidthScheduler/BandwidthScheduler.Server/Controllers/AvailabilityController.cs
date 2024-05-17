@@ -41,7 +41,7 @@ namespace BandwidthScheduler.Server.Controllers
                 start  = DateTime.Parse(startString);
                 end = DateTime.Parse(endString);
             }
-            catch (Exception ex)
+            catch
             {
                 return BadRequest("start and or end could not be parsed");
             }
@@ -51,7 +51,6 @@ namespace BandwidthScheduler.Server.Controllers
             var current = DbModelFunction.GetCurrentUser(HttpContext);
 
             var availabilities = await GetAnyAvailabilityOrAdjacentIntersection(_db.Availabilities, current.Id, start, end).ToArrayAsync();
-
 
             var commitments = await GetCommitmentAnyIntersection(_db.Commitments, current.Id, start, end).ToArrayAsync();
 
@@ -71,55 +70,75 @@ namespace BandwidthScheduler.Server.Controllers
         [HttpPut]
         public async Task<IActionResult> PutAsync([FromBody] AvailabilityPutRequest request)
         {
-            var range = request.RangeRequested;
+            var start = request.RangeRequested.Start;
+            var end = request.RangeRequested.End;
             var current = DbModelFunction.GetCurrentUser(HttpContext);
+
+            var toRemove = new HashSet<Availability>();
+
+            // Validate and get actual start and end of availability
 
             if (!AvailabilityControllerValidation.ValidateTimeFrames(request.RangeRequested.Start, request.RangeRequested.End, request.Times))
             {
                 return BadRequest("Invalid time frames");
             }
 
+            // link proposed availabilities to current user
+
             request.Times.Foreach(e => { e.UserId = current.Id; });
 
-            var commitments = await GetCommitmentAnyIntersection(_db.Commitments, current.Id, request.RangeRequested.Start, request.RangeRequested.End).ToArrayAsync();
+            // validate no intersection with commitments
+
+            var commitments = await GetCommitmentAnyIntersection(_db.Commitments, current.Id, start, end).ToArrayAsync();
             
             if (!AvailabilityControllerValidation.ValidateAvaiabilityCommitmentSeperation(request.Times, commitments))
             {
                 return BadRequest("Commitment collision");
             }
 
-            var streaks = TimeFrameFunctions.CreateStreaksAvailability(request.Times);
+            // Simplify sequence of time windows
 
-            var encapsulate = await GetTimeWindowAvailabilityEncapsulated(_db.Availabilities, current.Id, request.RangeRequested.Start, request.RangeRequested.End).FirstOrDefaultAsync();
-            var left = await GetAvailabilityLeftNeighbor(_db.Availabilities, current.Id, request.RangeRequested.Start, request.RangeRequested.End).FirstOrDefaultAsync();
-            var right = await GetAvailabilityRightNeighbor(_db.Availabilities, current.Id, request.RangeRequested.Start, request.RangeRequested.End).FirstOrDefaultAsync();
+            if (!TimeFrameFunctions.CreateStreaksAvailability(request.Times, out var streaks) || streaks == null)
+            {
+                return BadRequest("intersection of availabilities");
+            }
 
-            if (!TimeFrameFunctions.StitchSidesAvailabilities(current.Id, request.RangeRequested.Start, request.RangeRequested.End, encapsulate, left, right, _db.Availabilities, out var leftResult, out var rightResult))
+            // stitch to sides if needed (will add new and remove old)
+
+            var encapsulate = await GetTimeWindowAvailabilityEncapsulated(_db.Availabilities, current.Id, start, end).FirstOrDefaultAsync();
+            var left = await GetAvailabilityLeftNeighbor(_db.Availabilities, current.Id, start, end).FirstOrDefaultAsync();
+            var right = await GetAvailabilityRightNeighbor(_db.Availabilities, current.Id, start, end).FirstOrDefaultAsync();
+
+            if (!TimeFrameFunctions.StitchSidesAvailabilities(current.Id, start, end, encapsulate, left, right, out var toAddStitch, out var toRemoveStitch))
             {
                 return BadRequest("Database corrupted");
             }
 
-            if (leftResult != null)
+            // simplify the collection of timewindows.
+            if (!TimeFrameFunctions.CreateStreaksAvailability(streaks.Union(toAddStitch), out streaks) || streaks == null)
             {
-                streaks.Add(leftResult);
+                return ValidationProblem("Internal error");
             }
-            if (rightResult != null)
-            {
-                streaks.Add(rightResult);
-            }
+            toRemove.AddRange(toRemoveStitch);
 
-            streaks = TimeFrameFunctions.CreateStreaksAvailability(streaks.ToArray());
-            var captured = await GetAvailabilityTimeWindowsCaptured(_db.Availabilities, current.Id, request.RangeRequested.Start, request.RangeRequested.End).OrderBy(e => e.StartTime).ToListAsync();
+            // Identify any unneeded DB operations (redundancy)
 
-            TimeFrameFunctions.IdentifyRedundancyAvailability(streaks, captured, out var toAdd, out var toRemove);
+            var captured = await GetAvailabilityTimeWindowsCaptured(_db.Availabilities, current.Id, start, end).OrderBy(e => e.StartTime).ToListAsync();
+
+            TimeFrameFunctions.IdentifyRedundancyAvailability(streaks, captured, out var toAddRedundant, out var toRemoveRedundant);
+            toRemove.AddRange(toRemoveRedundant);
+
+            // commit to DB
 
             _db.Availabilities.RemoveRange(toRemove);
-            await _db.Availabilities.AddRangeAsync(toAdd);
+            await _db.Availabilities.AddRangeAsync(toAddRedundant);
 
             await _db.SaveChangesAsync();
 
             return Ok();
         }
+
+        #region Queries
 
         [NonAction]
         private static IQueryable<Availability> GetAnyAvailabilityOrAdjacentIntersection(DbSet<Availability> db, int id, DateTime start, DateTime end)
@@ -216,5 +235,6 @@ namespace BandwidthScheduler.Server.Controllers
                 (e.EndTime <= start) || e.StartTime >= end
             );
         }
+        #endregion
     }
 }

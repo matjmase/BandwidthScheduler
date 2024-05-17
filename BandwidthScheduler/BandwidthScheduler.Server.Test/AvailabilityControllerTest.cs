@@ -95,12 +95,17 @@ namespace BandwidthScheduler.Server.Test
 
             for (var i = 0; i < _numberOfUsers; i++)
             {
-                var streaks = TimeFrameFunctions.CreateStreaksAvailability(_applicabilities[i]);
-
-                var totalStreak = Math.Ceiling((_endTime - _startTime).TotalMinutes / _timeDiffMinutes / (i + 1));
-                if (!(i == 0 && (streaks.Count == 1) || totalStreak == streaks.Count))
+                if (!TimeFrameFunctions.CreateStreaksAvailability(_applicabilities[i], out var streaks) || streaks == null)
                 {
                     Assert.Fail();
+                }
+                else
+                {
+                    var totalStreak = Math.Ceiling((_endTime - _startTime).TotalMinutes / _timeDiffMinutes / (i + 1));
+                    if (!(i == 0 && (streaks.Count == 1) || totalStreak == streaks.Count))
+                    {
+                        Assert.Fail();
+                    }
                 }
             }
         }

@@ -8,22 +8,39 @@ namespace BandwidthScheduler.Server.Controllers.Common
 {
     public static class TimeFrameFunctions
     {
-        // Stitching 
+        #region Stitching
 
-        public static bool StitchSidesAvailabilities(int userId, DateTime windowStart, DateTime windowEnd, Availability? encapsulate, Availability? left, Availability? right, DbSet<Availability> db, out Availability? leftResult, out Availability? rightResult)
+        public static bool StitchSidesAvailabilities(int userId, DateTime windowStart, DateTime windowEnd, Availability? encapsulate, Availability? left, Availability? right, out HashSet<Availability> toAdd, out HashSet<Availability> toRemove)
         {
-            return StitchSides(windowStart, windowEnd, encapsulate, left, right, e => e.StartTime, e => e.EndTime, (s, e) => new Availability() { UserId = userId, StartTime = s, EndTime = e }, e => db.Remove(e), out leftResult, out rightResult);
+            return StitchSidesCollection(windowStart, windowEnd, encapsulate, left, right, e => e.StartTime, e => e.EndTime, (s, e) => new Availability() { UserId = userId, StartTime = s, EndTime = e }, out toAdd, out toRemove);
         }
-        public static bool StitchSidesCommitment(int userId, int teamId, DateTime windowStart, DateTime windowEnd, Commitment? encapsulate, Commitment? left, Commitment? right, DbSet<Commitment> db, out Commitment? leftResult, out Commitment? rightResult)
+        public static bool StitchSidesCommitment(int userId, int teamId, DateTime windowStart, DateTime windowEnd, Commitment? encapsulate, Commitment? left, Commitment? right, out HashSet<Commitment> toAdd, out HashSet<Commitment> toRemove)
         {
-            return StitchSides(windowStart, windowEnd, encapsulate, left, right, e => e.StartTime, e => e.EndTime, (s, e) => new Commitment() { UserId = userId, TeamId = teamId, StartTime = s, EndTime = e }, e => db.Remove(e), out leftResult, out rightResult);
+            return StitchSidesCollection(windowStart, windowEnd, encapsulate, left, right, e => e.StartTime, e => e.EndTime, (s, e) => new Commitment() { UserId = userId, TeamId = teamId, StartTime = s, EndTime = e }, out toAdd, out toRemove);
         }
 
-        public static bool StitchSides<T>(DateTime windowStart, DateTime windowEnd, T? encapsulate, T? left, T? right, Func<T, DateTime> start, Func<T, DateTime> end, Func<DateTime, DateTime, T> createNew, Action<T> remove, out T? leftResult, out T? rightResult) where T : class
-        {
-            leftResult = null;
-            rightResult = null;
+        public static bool StitchSidesCollection<T>(DateTime windowStart, DateTime windowEnd, T? encapsulate, T? left, T? right, Func<T, DateTime> start, Func<T, DateTime> end, Func<DateTime, DateTime, T> createNew, out HashSet<T> toAdd, out HashSet<T> toRemove) where T : class
+        { 
+            var toAddLocal = new HashSet<T>();
+            var toRemoveLocal = new HashSet<T>();
 
+            Action<DateTime, DateTime> addNew = (s, e) =>
+            {
+                toAddLocal.Add(createNew(s, e));
+            };
+
+            Action<T> remove = e => { toRemoveLocal.Add(e); };
+
+            var retVal = StitchSides(windowStart, windowEnd, encapsulate, left, right, start, end, addNew, remove);
+
+            toAdd = toAddLocal;
+            toRemove = toRemoveLocal;
+
+            return retVal;
+        }
+
+        public static bool StitchSides<T>(DateTime windowStart, DateTime windowEnd, T? encapsulate, T? left, T? right, Func<T, DateTime> start, Func<T, DateTime> end, Action<DateTime, DateTime> createNew, Action<T> remove) where T : class
+        {
             if (encapsulate != null && (left != null || right != null))
             {
                 return false;
@@ -31,20 +48,20 @@ namespace BandwidthScheduler.Server.Controllers.Common
 
             if (encapsulate != null)
             {
-                leftResult = createNew(start(encapsulate), windowStart);
-                rightResult = createNew(windowEnd, end(encapsulate));
+                createNew(start(encapsulate), windowStart);
+                createNew(windowEnd, end(encapsulate));
                 remove(encapsulate);
             }
             else
             {
                 if (left != null)
                 {
-                    leftResult = createNew(start(left), windowStart);
+                    createNew(start(left), windowStart);
                     remove(left);
                 }
                 if (right != null)
                 {
-                    rightResult = createNew(windowEnd, end(right));
+                    createNew(windowEnd, end(right));
                     remove(right);
                 }
             }
@@ -52,23 +69,32 @@ namespace BandwidthScheduler.Server.Controllers.Common
             return true;
         }
 
-        // Streaks
+        #endregion
 
-        public static List<Availability> CreateStreaksAvailability(Availability[] segmented)
+        #region Streaking
+
+        public static bool CreateStreaksAvailability(IEnumerable<Availability> segmented, out List<Availability>? streaks)
         {
-            return CreateStreaks(segmented, e => e.StartTime, e => e.EndTime, (avail, newEnd) => { avail.EndTime = newEnd; });
+            return CreateStreaks(segmented, e => e.StartTime, e => e.EndTime, (avail, newEnd) => { avail.EndTime = newEnd; }, out streaks);
         }
 
-        public static List<Commitment> CreateStreaksCommitment(Commitment[] segmented)
+        public static bool CreateStreaksCommitment(IEnumerable<Commitment> segmented, out List<Commitment>? streaks)
         {
-            return CreateStreaks(segmented, e => e.StartTime, e => e.EndTime, (avail, newEnd) => { avail.EndTime = newEnd; });
+            return CreateStreaks(segmented, e => e.StartTime, e => e.EndTime, (avail, newEnd) => { avail.EndTime = newEnd; }, out streaks);
         }
 
-        public static List<T> CreateStreaks<T>(T[] segmented, Func<T, DateTime> getStart, Func<T, DateTime> getEnd, Action<T, DateTime> setEnd) where T : class
+        public static bool CreateStreaks<T>(IEnumerable<T> segmented, Func<T, DateTime> getStart, Func<T, DateTime> getEnd, Action<T, DateTime> setEnd, out List<T>? streaks) where T : class
         {
+            streaks = null;
+
             var sorted = segmented.OrderBy(e => getStart(e));
 
             var output = new List<T>();
+
+            Func<T, T, bool> intersection = (t1, t2) =>
+            {
+                return !(getEnd(t1) <= getStart(t2) || getStart(t1) >= getEnd(t2));
+            };
 
             T? lastApplicable = null;
             foreach (var applicability in sorted)
@@ -78,7 +104,10 @@ namespace BandwidthScheduler.Server.Controllers.Common
                     lastApplicable = applicability;
                 }
                 else
-                {
+                {   if (intersection(lastApplicable, applicability))
+                    {
+                        return false;
+                    }
                     if (getEnd(lastApplicable) == getStart(applicability))
                     {
                         setEnd(lastApplicable, getEnd(applicability));
@@ -96,10 +125,14 @@ namespace BandwidthScheduler.Server.Controllers.Common
                 output.Add(lastApplicable);
             }
 
-            return output;
+            streaks = output;
+
+            return true;
         }
 
-        // redundancy
+        #endregion
+
+        #region Redundancy
 
         public static void IdentifyRedundancyAvailability(IEnumerable<Availability> input, IEnumerable<Availability> current, out HashSet<Availability> toAdd, out HashSet<Availability> toRemove)
         {
@@ -145,7 +178,9 @@ namespace BandwidthScheduler.Server.Controllers.Common
             }
         }
 
-        // Seperation
+        #endregion
+
+        #region Seperation
 
         public static bool IdentifySeperation<T, K>(IEnumerable<T> collection1, Func<T, DateTime> getStart1, Func<T, DateTime> getEnd1, IEnumerable<K> collection2, Func<K, DateTime> getStart2, Func<K, DateTime> getEnd2)
         {
@@ -185,7 +220,9 @@ namespace BandwidthScheduler.Server.Controllers.Common
             return true;
         }
 
-        // Validate Sequential Time Frames
+        #endregion
+
+        #region Validate No Intersection
 
         public static bool ValidateTimeFrameNoIntersection<T>(IEnumerable<T> timeFrames, Func<T, DateTime> getStart, Func<T, DateTime> getEnd, out DateTime windowStart, out DateTime windowEnd)
         {
@@ -226,6 +263,10 @@ namespace BandwidthScheduler.Server.Controllers.Common
             return true;
         }
 
+        #endregion
+
+        #region Validate Chain
+
         public static bool ValidateTimeFrameChain<T>(IEnumerable<T> timeFrames, Func<T, DateTime> getStart, Func<T, DateTime> getEnd, out DateTime windowStart, out DateTime windowEnd)
         {
             windowStart = new DateTime();
@@ -264,5 +305,7 @@ namespace BandwidthScheduler.Server.Controllers.Common
 
             return true;
         }
+
+        #endregion
     }
 }
