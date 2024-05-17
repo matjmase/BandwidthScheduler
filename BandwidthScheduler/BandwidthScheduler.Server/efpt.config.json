@@ -27,10 +27,6 @@
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[Proposal]",
-         "ObjectType": 0
-      },
-      {
          "Name": "[dbo].[Team]",
          "ObjectType": 0
       },

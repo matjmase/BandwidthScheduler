@@ -6,8 +6,15 @@
 
 <mat-divider *ngIf="SelectedTeam"></mat-divider>
 
-<app-grid-rendering-form
+<app-date-time-range-selector
   *ngIf="SelectedTeam"
+  (DateTimeRangeSelected)="SubmitRangeModel($event)"
+></app-date-time-range-selector>
+
+<mat-divider *ngIf="SelectedTimeRange"></mat-divider>
+
+<app-grid-rendering-form
+  *ngIf="SelectedTimeRange"
   (FormModel)="SubmitRenderModel($event)"
 ></app-grid-rendering-form>
 

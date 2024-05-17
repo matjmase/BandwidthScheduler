@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { ITeam } from '../../models/ITeam';
+import { ITeam } from '../../models/db/ITeam';
 import { Observable } from 'rxjs';
-import { IUser } from '../../models/IUser';
+import { IUser } from '../../models/db/IUser';
 import { IAllAndTeamUsers } from '../../models/IAllAndTeamUsers';
 import { IStaffTeamChangeRequest } from '../../models/IStaffTeamChangeRequest';
 

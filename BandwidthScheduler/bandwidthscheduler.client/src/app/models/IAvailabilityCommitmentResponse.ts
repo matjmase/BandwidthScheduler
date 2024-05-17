@@ -1,7 +1,7 @@
-import { IAvailabilityResponse } from './IAvailabilityResponse';
-import { ICommitmentResponse } from './ICommitmentResponse';
+import { IAvailability } from './db/IAvailability';
+import { ICommitment } from './db/ICommitment';
 
 export interface IAvailabilityCommitmentResponse {
-  availabilities: IAvailabilityResponse[];
-  commitments: ICommitmentResponse[];
+  availabilities: IAvailability[];
+  commitments: ICommitment[];
 }

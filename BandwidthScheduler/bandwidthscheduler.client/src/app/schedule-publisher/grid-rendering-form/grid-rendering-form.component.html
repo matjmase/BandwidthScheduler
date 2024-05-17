@@ -1,32 +1,8 @@
 <mat-card>
-  <mat-card-title> Select a Date and Max Employees </mat-card-title>
+  <mat-card-title> Select Max Employees </mat-card-title>
   <mat-card-content>
     <form #schedulingForm="ngForm" (ngSubmit)="Submit(schedulingForm)">
       <div>
-        <mat-form-field>
-          <mat-label>Choose a date</mat-label>
-          <input
-            id="date"
-            name="date"
-            required
-            ngModel
-            matInput
-            [matDatepicker]="datepicker"
-          />
-          <mat-hint>MM/DD/YYYY</mat-hint>
-          <mat-datepicker-toggle
-            matIconSuffix
-            [for]="datepicker"
-          ></mat-datepicker-toggle>
-          <mat-datepicker #datepicker>
-            <mat-datepicker-actions>
-              <button mat-button matDatepickerCancel>Cancel</button>
-              <button mat-raised-button color="primary" matDatepickerApply>
-                Apply
-              </button>
-            </mat-datepicker-actions>
-          </mat-datepicker>
-        </mat-form-field>
         <mat-form-field>
           <mat-label>Max Employees</mat-label>
           <mat-icon matPrefix>numbers</mat-icon>

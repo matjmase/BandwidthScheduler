@@ -1,9 +1,12 @@
 using BandwidthScheduler.Server.Common.DataStructures;
 using BandwidthScheduler.Server.Common.Extensions;
 using BandwidthScheduler.Server.Controllers;
+using BandwidthScheduler.Server.Controllers.Common;
+using BandwidthScheduler.Server.Controllers.Validation;
 using BandwidthScheduler.Server.DbModels;
 using BandwidthScheduler.Server.Models.PublishController.Request;
 using BandwidthScheduler.Server.Models.PublishController.Response;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BandwidthScheduler.Server.Test
 {
@@ -46,15 +49,6 @@ namespace BandwidthScheduler.Server.Test
             _schedule = schedule.ToArray();
 
             var applicabilities = new List<UserApplicabilityTestingModel>();
-            for (var i = _startTime; i < _endTime; i = i.AddMinutes(_timeDiffMinutes))
-            {
-                schedule.Add(new ScheduleProposalAmount()
-                {
-                    StartTime = i,
-                    EndTime = i.AddMinutes(_timeDiffMinutes),
-                    Employees = _totalEmployees
-                });
-            }
 
             for (var i = 0; i < _numberOfUsers; i++) 
             {
@@ -93,19 +87,29 @@ namespace BandwidthScheduler.Server.Test
             }
         }
 
-        [Test]
-        public void TestStreaks()
+        /// <summary>
+        /// Make the events continuous to "streaks"
+        /// </summary>
+        /// <param name="segmentedAvailability"></param>
+        /// <returns></returns>
+        [NonAction]
+        public static Dictionary<int, List<Availability>> CreateStreaksForAll(Dictionary<int, Availability[]> segmentedAvailability)
         {
-            var streaks = PublishController.CreateStreaks(_applicabilities);
+            var userStreaks = new Dictionary<int, List<Availability>>();
 
-            for (var i = 0; i < _numberOfUsers; i++)
+            foreach (var userId in segmentedAvailability.Keys)
             {
-                var totalStreak = Math.Ceiling((_endTime - _startTime).TotalMinutes / _timeDiffMinutes / (i + 1));
-                if (!(i == 0 && (streaks[i].Count == 1) || totalStreak == streaks[i].Count))
+                if (!TimeFrameFunctions.CreateStreaksAvailability(segmentedAvailability[userId], out var streaks) || streaks == null)
                 {
                     Assert.Fail();
                 }
+                else
+                {
+                    userStreaks.Add(userId, streaks);
+                }
             }
+
+            return userStreaks;
         }
 
         /// <summary>
@@ -114,8 +118,9 @@ namespace BandwidthScheduler.Server.Test
         [Test]
         public void TestStreakScoping()
         {
-            var streaks = PublishController.CreateStreaks(_applicabilities);
-            var scoped = PublishController.ScopeStreakToWindow(streaks, _schedule);
+            var streaks = CreateStreaksForAll(_applicabilities); // All Db will be continuous
+
+            var scoped = ScheduleGeneration.ScopeStreakToWindow(streaks.SelectDictionaryValue(e => e.ToArray()), _schedule);
 
             var currHeap = new Heap<ScheduleProposalUser>((f, s) => f.EndTime < s.EndTime);
 
@@ -195,7 +200,7 @@ namespace BandwidthScheduler.Server.Test
             Action<Availability> removeAvailabilityFunc = e => { removeAvailability.Add(e); };
             Action<Availability> addCommitmentFunc = e => { addCommitment.Add(e); };
 
-            if (!PublishController.ProcessAvailabilitiesAndProposals(_applicabilities, start, end, _applicabilities, start, end, addAvailabilityFunc, removeAvailabilityFunc, addCommitmentFunc))
+            if (!PublishControllerValidation.ProcessAvailabilitiesAndProposals(_applicabilities, start, end, _applicabilities, start, end, addAvailabilityFunc, removeAvailabilityFunc, addCommitmentFunc))
             {
                 Assert.Fail();
             }
@@ -256,7 +261,7 @@ namespace BandwidthScheduler.Server.Test
                 shifted.Add(applicable.Key, applicable.Value.Select(e => new Availability() { UserId = e.UserId, StartTime = e.StartTime.AddMinutes(_timeDiffMinutes), EndTime = e.EndTime.AddMinutes(_timeDiffMinutes) }).ToArray());
             }
 
-            if (PublishController.ProcessAvailabilitiesAndProposals(_applicabilities, start, end, shifted, start, end, addAvailabilityFunc, removeAvailabilityFunc, addCommitmentFunc))
+            if (PublishControllerValidation.ProcessAvailabilitiesAndProposals(_applicabilities, start, end, shifted, start, end, addAvailabilityFunc, removeAvailabilityFunc, addCommitmentFunc))
             {
                 Assert.Fail();
             }
@@ -288,7 +293,7 @@ namespace BandwidthScheduler.Server.Test
                 shrink.Add(applicable.Key, applicable.Value.Select(e => new Availability() { UserId = e.UserId, StartTime = e.StartTime.AddTicks(halfLength), EndTime = e.EndTime.AddTicks(-halfLength) }).ToArray());
             }
 
-            if (!PublishController.ProcessAvailabilitiesAndProposals(_applicabilities, start, end, shrink, start, end, addAvailabilityFunc, removeAvailabilityFunc, addCommitmentFunc))
+            if (!PublishControllerValidation.ProcessAvailabilitiesAndProposals(_applicabilities, start, end, shrink, start, end, addAvailabilityFunc, removeAvailabilityFunc, addCommitmentFunc))
             {
                 Assert.Fail();
             }

@@ -1,8 +1,8 @@
 import { Component, Input } from '@angular/core';
 import { IAllAndTeamUsers } from '../../models/IAllAndTeamUsers';
-import { IUser } from '../../models/IUser';
+import { IUser } from '../../models/db/IUser';
 import { SelectableElementWrapper } from './selectable-element-wrapper';
-import { ITeam } from '../../models/ITeam';
+import { ITeam } from '../../models/db/ITeam';
 import { BackendConnectService } from '../../services/backend-connect.service';
 import { SpinnerCardHorizontalStretch } from '../../commonControls/spinner-card/spinner-card.component';
 import { StandardSnackbarService } from '../../services/standard-snackbar.service';

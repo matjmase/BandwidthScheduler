@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { ITeam } from '../models/ITeam';
+import { ITeam } from '../models/db/ITeam';
 import { TeamSelectorComponent } from '../commonControls/team-selector/team-selector.component';
 
 @Component({

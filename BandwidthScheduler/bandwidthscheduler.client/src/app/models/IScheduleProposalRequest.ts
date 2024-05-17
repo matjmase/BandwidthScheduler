@@ -1,5 +1,5 @@
 import { IScheduleProposalAmount } from './IScheduleProposalAmount';
-import { ITeam } from './ITeam';
+import { ITeam } from './db/ITeam';
 
 export interface IScheduleProposalRequest {
   selectedTeam: ITeam;

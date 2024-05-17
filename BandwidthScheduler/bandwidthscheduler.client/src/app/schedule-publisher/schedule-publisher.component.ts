@@ -6,12 +6,13 @@ import { BackendConnectService } from '../services/backend-connect.service';
 import { IColorModel } from './ColoredTimeFrameModel';
 import { GridRenderingFormModel } from './grid-rendering-form/grid-rendering-form-model';
 import { IGridRenderingGeneratedModel } from './grid-rendering-generated/grid-rendering-generated-model';
-import { ITeam } from '../models/ITeam';
+import { ITeam } from '../models/db/ITeam';
 import { IScheduleProposalAmount } from '../models/IScheduleProposalAmount';
 import { IScheduleProposalUserProcessed } from '../models/IScheduleProposalUser';
 import { IScheduleProposalResponse } from '../models/IScheduleProposalResponse';
 import { HttpErrorResponse } from '@angular/common/http';
 import { StandardSnackbarService } from '../services/standard-snackbar.service';
+import { DateTimeRangeSelectorModel } from '../commonControls/date-time-range-selector/date-time-range-selector-model';
 
 @Component({
   selector: 'app-schedule-publisher',
@@ -28,6 +29,8 @@ export class SchedulePublisherComponent {
 
   public SelectedTeam: ITeam | undefined;
 
+  public SelectedTimeRange: DateTimeRangeSelectorModel | undefined;
+
   public RenderModel: GridRenderingFormModel | undefined;
 
   public TimeFrames: TimeFrameModel[] | undefined;
@@ -43,6 +46,10 @@ export class SchedulePublisherComponent {
     this.SelectedTeam = team;
   }
 
+  public SubmitRangeModel(model: DateTimeRangeSelectorModel) {
+    this.SelectedTimeRange = model;
+  }
+
   public SubmitRenderModel(model: GridRenderingFormModel) {
     this.RenderModel = model;
 
@@ -50,11 +57,18 @@ export class SchedulePublisherComponent {
 
     const newTimeFrames: TimeFrameModel[] = [];
 
-    for (let i = 0; i < this.totalBlock; i++) {
+    console.log(this.SelectedTimeRange);
+
+    for (
+      let i = 0;
+      this.GetDateTransformed(i + 1, this.SelectedTimeRange!.start) <=
+      this.SelectedTimeRange!.end;
+      i++
+    ) {
       newTimeFrames.push(
         new TimeFrameModel(
-          this.GetDateTransformed(i, this.RenderModel.currentDate),
-          this.GetDateTransformed(i + 1, this.RenderModel.currentDate),
+          this.GetDateTransformed(i, this.SelectedTimeRange!.start),
+          this.GetDateTransformed(i + 1, this.SelectedTimeRange!.start),
           new Array(this.RenderModel.maxEmployees).fill(false)
         )
       );
@@ -66,7 +80,7 @@ export class SchedulePublisherComponent {
   public GetDateTransformed(increment: number, currentDate: Date): Date {
     const cloneDate = new Date(currentDate);
 
-    cloneDate.setMinutes(this.timeSpan * increment);
+    cloneDate.setMinutes(cloneDate.getMinutes() + this.timeSpan * increment);
 
     return cloneDate;
   }

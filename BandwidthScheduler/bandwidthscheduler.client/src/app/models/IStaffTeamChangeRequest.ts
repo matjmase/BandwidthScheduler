@@ -1,5 +1,5 @@
-import { ITeam } from './ITeam';
-import { IUser } from './IUser';
+import { ITeam } from './db/ITeam';
+import { IUser } from './db/IUser';
 
 export interface IStaffTeamChangeRequest {
   currentTeam: ITeam;

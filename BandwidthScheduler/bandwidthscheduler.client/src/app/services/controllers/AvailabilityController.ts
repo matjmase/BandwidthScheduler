@@ -1,7 +1,9 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AvailabilityEntry } from '../../models/AvailabilityEntry';
+import { AvailabilityEntry } from '../../models/db/AvailabilityEntry';
 import { IAvailabilityCommitmentResponse } from '../../models/IAvailabilityCommitmentResponse';
+import { DateTimeRangeSelectorModel } from '../../commonControls/date-time-range-selector/date-time-range-selector-model';
+import { JsonCustom } from '../../models/JsonCustom';
 
 export class AvailabilityController {
   private _baseUrl: string;
@@ -10,17 +12,23 @@ export class AvailabilityController {
     this._baseUrl = baseApiUrl + 'availability/';
   }
 
-  public GetAllTimes(date: Date): Observable<IAvailabilityCommitmentResponse> {
+  public GetAllTimes(
+    range: DateTimeRangeSelectorModel
+  ): Observable<IAvailabilityCommitmentResponse> {
+    const headers = new HttpHeaders()
+      .set('start', JsonCustom.stringify(range.start))
+      .set('end', JsonCustom.stringify(range.end));
     return this.http.get<IAvailabilityCommitmentResponse>(this._baseUrl, {
-      headers: {
-        dayRequested: date.toUTCString(),
-      },
+      headers: headers,
     });
   }
 
-  public PutAllTimes(date: Date, times: AvailabilityEntry[]): Observable<void> {
+  public PutAllTimes(
+    range: DateTimeRangeSelectorModel,
+    times: AvailabilityEntry[]
+  ): Observable<void> {
     return this.http.put<void>(this._baseUrl, {
-      dayRequested: date,
+      rangeRequested: range,
       times: times,
     });
   }

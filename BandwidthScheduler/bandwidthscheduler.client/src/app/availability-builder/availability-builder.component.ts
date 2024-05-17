@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { BackendConnectService } from '../services/backend-connect.service';
-import { AvailabilityEntry } from '../models/AvailabilityEntry';
-import { CommitmentEntry } from '../models/CommitmentEntry';
+import { AvailabilityEntry } from '../models/db/AvailabilityEntry';
+import { CommitmentEntry } from '../models/db/CommitmentEntry';
 import { StandardSnackbarService } from '../services/standard-snackbar.service';
 import { HttpErrorResponse } from '@angular/common/http';
+import { DateTimeRangeSelectorModel } from '../commonControls/date-time-range-selector/date-time-range-selector-model';
 
 @Component({
   selector: 'app-availability-builder',
@@ -12,23 +13,20 @@ import { HttpErrorResponse } from '@angular/common/http';
 })
 export class AvailabilityBuilderComponent {
   private timeSpan = 30;
-  private totalMinutes = 24 * 60;
 
-  private totalBlock = this.totalMinutes / this.timeSpan;
-
-  private _currentDate: Date | undefined;
   public loading: boolean = false;
 
-  get currentDate(): Date | undefined {
-    return this._currentDate;
-  }
-  set currentDate(date: Date) {
-    this._currentDate = date;
+  public TimeRange: DateTimeRangeSelectorModel | undefined;
+
+  public SelectedTimeRange(range: DateTimeRangeSelectorModel): void {
+    console.log(range);
+    this.TimeRange = range;
     this.currentAvailableModels = [];
     this.loading = true;
-    this.backEnd.Availability.GetAllTimes(this._currentDate).subscribe({
+    this.backEnd.Availability.GetAllTimes(this.TimeRange).subscribe({
       complete: () => (this.loading = false),
       next: (value) => {
+        console.log(value.commitments);
         this.currentAvailabilities = value.availabilities.map(
           (e) => new AvailabilityEntry(e)
         );
@@ -38,29 +36,31 @@ export class AvailabilityBuilderComponent {
         );
 
         // fill out time blocks
-        for (let i = 0; i < this.totalBlock; i++) {
-          const startTime = this.GetDateTransformed(i);
-          const endTime = this.GetDateTransformed(i + 1);
+        for (
+          let i = 0;
+          range.end > this.GetDateTransformed(range.start, i);
+          i++
+        ) {
+          const startTime = this.GetDateTransformed(range.start, i);
+          const endTime = this.GetDateTransformed(range.start, i + 1);
           this.currentAvailableModels.push({
             startTime: startTime,
             endTime: endTime,
             isSelected: this.currentAvailabilities.some(
               (e) =>
                 // any intersection
-                (e.startTime >= startTime && e.startTime < endTime) ||
-                (e.endTime > startTime && e.endTime <= endTime) ||
-                (e.startTime <= startTime && e.endTime >= endTime)
+                !(e.endTime <= startTime || e.startTime >= endTime)
             ),
             isDisabled: this.currentCommitmentModels.some(
               (e) =>
-                (e.startTime >= startTime && e.startTime < endTime) ||
-                (e.endTime > startTime && e.endTime <= endTime) ||
-                (e.startTime <= startTime && e.endTime >= endTime)
+                // any intersection
+                !(e.endTime <= startTime || e.startTime >= endTime)
             ),
           });
         }
       },
       error: (errorResp: HttpErrorResponse) => {
+        this.loading = false;
         this.snackBar.OpenErrorMessage(errorResp.error);
       },
     });
@@ -72,11 +72,12 @@ export class AvailabilityBuilderComponent {
 
   constructor(
     private backEnd: BackendConnectService,
-    private snackBar: StandardSnackbarService
+    private snackBar: StandardSnackbarService,
+    private ref: ChangeDetectorRef
   ) {}
 
-  public GetDateTransformed(increment: number): Date {
-    const cloneDate = new Date(this.currentDate!);
+  public GetDateTransformed(date: Date, increment: number): Date {
+    const cloneDate = new Date(date);
 
     cloneDate.setMinutes(this.timeSpan * increment);
 
@@ -84,17 +85,17 @@ export class AvailabilityBuilderComponent {
   }
 
   public OnSubmit(): void {
-    console.log(this.currentAvailableModels.filter((e) => e.isSelected));
-
     this.backEnd.Availability.PutAllTimes(
-      this._currentDate!,
+      this.TimeRange!,
       this.currentAvailableModels
         .filter((e) => e.isSelected)
         .map<AvailabilityEntry>((e) => {
-          return {
-            startTime: e.startTime,
-            endTime: e.endTime,
-          };
+          const proto = AvailabilityEntry.Default();
+
+          proto.startTime = e.startTime;
+          proto.endTime = e.endTime;
+
+          return proto;
         })
     ).subscribe({
       complete: () => (this.currentAvailableModels = []),
@@ -103,7 +104,7 @@ export class AvailabilityBuilderComponent {
   }
 }
 
-export interface IAvailabilityEntryModel extends AvailabilityEntry {
+export interface IAvailabilityEntryModel {
   startTime: Date;
   endTime: Date;
   isSelected: boolean;

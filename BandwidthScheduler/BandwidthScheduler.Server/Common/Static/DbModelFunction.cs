@@ -10,11 +10,6 @@ namespace BandwidthScheduler.Server.Common.Static
 {
     public static class DbModelFunction
     {
-        public static ClientUser ToClientUser(User dbUser)
-        {
-            return new ClientUser() { Id = dbUser.Id, Email = dbUser.Email };
-        }
-
         public static LoginResponse ToLoginResponse(User user, IEnumerable<BandwidthScheduler.Server.DbModels.UserRole> roles, IConfiguration config)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]));
