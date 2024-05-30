@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { DateTimeRangeSelectorModel } from '../../commonControls/date-time-range-selector/date-time-range-selector-model';
 import { ITeam } from '../../models/db/ITeam';
 import { IGridLegendReadOnlyModel } from '../common/grid-legend-read-only/grid-legend-read-only-model';
@@ -10,6 +10,11 @@ import {
   IColorModel,
 } from '../schedule-publisher/ColoredTimeFrameModel';
 import { UserLegendModel } from '../../commonControls/user-legend/user-legend-model';
+import { MessageModalBoxComponent } from '../../commonControls/message-modal-box/message-modal-box.component';
+import {
+  IMessageModalBoxModel,
+  MessageModalBoxType,
+} from '../../commonControls/message-modal-box/message-modal-box-model';
 
 @Component({
   selector: 'app-schedule-recall',
@@ -17,6 +22,14 @@ import { UserLegendModel } from '../../commonControls/user-legend/user-legend-mo
   styleUrl: './schedule-recall.component.scss',
 })
 export class ScheduleRecallComponent {
+  @ViewChild('recallModal') recallModal!: MessageModalBoxComponent;
+  public RecalModalModel: IMessageModalBoxModel = {
+    title: 'Confirmation',
+    description:
+      'Are you sure you want to recall all commitments during this time period?',
+    type: MessageModalBoxType.Confirmation,
+  };
+
   private timeSpan = 30;
 
   public SelectedTeam: ITeam | undefined;
@@ -129,5 +142,11 @@ export class ScheduleRecallComponent {
     cloneDate.setMinutes(cloneDate.getMinutes() + this.timeSpan * increment);
 
     return cloneDate;
+  }
+
+  public async RecallCommitmentsClicked(): Promise<void> {
+    const result = await this.recallModal.ShowModal();
+
+    console.log(result);
   }
 }

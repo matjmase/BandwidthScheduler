@@ -12,5 +12,12 @@
 
   <app-grid-legend-read-only [Model]="GridModel"></app-grid-legend-read-only>
 
-  <button mat-stroked-button color="warn">Recall All Commitments</button>
+  <button mat-stroked-button color="warn" (click)="RecallCommitmentsClicked()">
+    Recall All Commitments
+  </button>
 </ng-container>
+
+<app-message-modal-box
+  #recallModal
+  [Model]="RecalModalModel"
+></app-message-modal-box>

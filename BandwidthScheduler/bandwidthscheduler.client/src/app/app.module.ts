@@ -58,6 +58,7 @@ import { GridRenderingGeneratedComponent } from './schedule/schedule-publisher/g
 import { GridRenderingProposalComponent } from './schedule/schedule-publisher/grid-rendering-proposal/grid-rendering-proposal.component';
 import { SchedulePublisherComponent } from './schedule/schedule-publisher/schedule-publisher.component';
 import { ScheduleRecallComponent } from './schedule/schedule-recall/schedule-recall.component';
+import { MessageModalBoxComponent } from './commonControls/message-modal-box/message-modal-box.component';
 
 @NgModule({
   declarations: [
@@ -89,6 +90,7 @@ import { ScheduleRecallComponent } from './schedule/schedule-recall/schedule-rec
     ScheduleRecallComponent,
     GridLegendReadOnlyComponent,
     ScheduleComponent,
+    MessageModalBoxComponent,
   ],
   imports: [
     BrowserModule,

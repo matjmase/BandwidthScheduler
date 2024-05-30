@@ -1,0 +1,29 @@
+<ng-template #content let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">Profile update</h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="modal.dismiss('Cross click')"
+    ></button>
+  </div>
+  <div class="modal-body">
+    <p>afwefawfe</p>
+  </div>
+  <div class="modal-footer">
+    <ng-container *ngIf="Model?.type === 0">
+      <button mat-stroked-button color="primary" (click)="modal.dismiss(true)">
+        Ok
+      </button>
+    </ng-container>
+    <ng-container *ngIf="Model?.type === 1">
+      <button mat-stroked-button color="primary" (click)="modal.dismiss(true)">
+        Accept
+      </button>
+      <button mat-stroked-button color="warn" (click)="modal.dismiss(false)">
+        Cancel
+      </button>
+    </ng-container>
+  </div>
+</ng-template>
