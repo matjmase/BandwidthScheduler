@@ -212,9 +212,19 @@ export class SchedulePublisherComponent {
       ProposalRequest: this.proposalRequest!,
       ProposalResponse: this.proposalResponse!,
     }).subscribe({
-      complete: () => window.location.reload(),
-      error: (errorResp: HttpErrorResponse) =>
-        this.snackBar.OpenErrorMessage(errorResp.error),
+      complete: () => {
+        this.SelectedTeam = undefined;
+        this.SelectedTimeRange = undefined;
+        this.SelectedMaxEmployees = undefined;
+        this.RenderingModel = undefined;
+        this.GeneratedModel = undefined;
+
+        this.snackBar.OpenConfirmationMessage(
+          'Successfully scheduled for the time period.'
+        );
+      },
+      error: () =>
+        this.snackBar.OpenErrorMessage('Error submitting the schdule.'),
     });
   }
 }
