@@ -58,6 +58,8 @@ namespace BandwidthScheduler.Server.Controllers.Schedule
             var toAddCommitment = new HashSet<Commitment>();
             var toRemoveCommitment = new HashSet<Commitment>();
 
+            var encapsulatedMiddle = new HashSet<Availability>();
+
             foreach (var userId in userIds)
             {
                 var encapsulate = encapsulateDict.GetValueOrDefault(userId);    
@@ -71,6 +73,16 @@ namespace BandwidthScheduler.Server.Controllers.Schedule
 
                 toAddCommitment.AddRange(toAddStitch);
                 toRemoveCommitment.AddRange(toRemoveStitch);
+
+                if (encapsulate != null)
+                {
+                    encapsulatedMiddle.Add(new Availability()
+                    {
+                        UserId = userId,
+                        StartTime = start,
+                        EndTime = end,
+                    });
+                }
             }
 
             // captured transition
@@ -113,6 +125,7 @@ namespace BandwidthScheduler.Server.Controllers.Schedule
 
             await _db.Commitments.AddRangeAsync(toAddCommitment);
             await _db.Availabilities.AddRangeAsync(toAddAvail);
+            await _db.Availabilities.AddRangeAsync(encapsulatedMiddle);
 
             await _db.SaveChangesAsync();
 
