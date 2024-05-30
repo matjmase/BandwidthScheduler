@@ -1,5 +1,5 @@
 @use "@angular/material" as mat;
-@import "../../styles.scss";
+@import "../../../../styles.scss";
 
 $primary: mat.get-color-from-palette(
   map-get($bandwidthscheduler-client-theme, primary),
@@ -24,4 +24,29 @@ $accent: mat.get-color-from-palette(
 
 .card-clickable-selected {
   background-color: $primary;
+}
+
+.padded-card {
+  padding: 1rem;
+}
+
+.flex-row-scroll {
+  display: flex;
+  flex-direction: row;
+  overflow-x: auto;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.spaced-flex-row {
+  display: flex;
+  flex-direction: row;
+  margin-top: 2rem;
+}
+
+.flex-fill {
+  flex-grow: 1;
 }

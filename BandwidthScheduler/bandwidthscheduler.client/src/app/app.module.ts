@@ -32,7 +32,6 @@ import { authInterceptor } from './interceptors/auth.interceptor';
 import { AuthenticateDirective } from './directives/authenticate.directive';
 import { StaffBuilderComponent } from './staff-builder/staff-builder.component';
 import { AvailabilityBuilderComponent } from './availability-builder/availability-builder.component';
-import { SchedulePublisherComponent } from './schedule-publisher/schedule-publisher.component';
 import { ScheduleHistoryComponent } from './schedule-history/schedule-history.component';
 import { AuthorizeDirective } from './directives/authorize.directive';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -42,19 +41,23 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTabsModule } from '@angular/material/tabs';
 import { TeamSelectorComponent } from './commonControls/team-selector/team-selector.component';
 import { AddRemoveTeamUserComponent } from './staff-builder/add-remove-team-user/add-remove-team-user.component';
 import { AddTeamComponent } from './staff-builder/add-team/add-team.component';
-import { GridRenderingFormComponent } from './schedule-publisher/grid-rendering-form/grid-rendering-form.component';
-import { GridRenderingProposalComponent } from './schedule-publisher/grid-rendering-proposal/grid-rendering-proposal.component';
-import { GridRenderingGeneratedComponent } from './schedule-publisher/grid-rendering-generated/grid-rendering-generated.component';
 import { ColorElementDirective } from './directives/color-element.directive';
 import { SpinnerCardComponent } from './commonControls/spinner-card/spinner-card.component';
 import { TimePickerSnapComponent } from './commonControls/time-picker-snap/time-picker-snap.component';
 import { DateTimeRangeSelectorComponent } from './commonControls/date-time-range-selector/date-time-range-selector.component';
 import { DateTimeRangeSelectorValidatorDirective } from './validators/date-time-range-selector-validator.directive';
 import { UserLegendComponent } from './commonControls/user-legend/user-legend.component';
-import { ScheduleEditorComponent } from './schedule-editor/schedule-editor.component';
+import { ScheduleComponent } from './schedule/schedule.component';
+import { GridLegendReadOnlyComponent } from './schedule/common/grid-legend-read-only/grid-legend-read-only.component';
+import { GridRenderingFormComponent } from './schedule/schedule-publisher/grid-rendering-form/grid-rendering-form.component';
+import { GridRenderingGeneratedComponent } from './schedule/schedule-publisher/grid-rendering-generated/grid-rendering-generated.component';
+import { GridRenderingProposalComponent } from './schedule/schedule-publisher/grid-rendering-proposal/grid-rendering-proposal.component';
+import { SchedulePublisherComponent } from './schedule/schedule-publisher/schedule-publisher.component';
+import { ScheduleRecallComponent } from './schedule/schedule-recall/schedule-recall.component';
 
 @NgModule({
   declarations: [
@@ -83,7 +86,9 @@ import { ScheduleEditorComponent } from './schedule-editor/schedule-editor.compo
     DateTimeRangeSelectorComponent,
     DateTimeRangeSelectorValidatorDirective,
     UserLegendComponent,
-    ScheduleEditorComponent,
+    ScheduleRecallComponent,
+    GridLegendReadOnlyComponent,
+    ScheduleComponent,
   ],
   imports: [
     BrowserModule,
@@ -109,6 +114,7 @@ import { ScheduleEditorComponent } from './schedule-editor/schedule-editor.compo
     MatListModule,
     MatAutocompleteModule,
     MatSnackBarModule,
+    MatTabsModule,
   ],
   providers: [
     provideAnimationsAsync(),

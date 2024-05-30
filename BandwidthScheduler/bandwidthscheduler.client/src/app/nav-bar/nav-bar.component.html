@@ -74,24 +74,13 @@
 
   <mat-toolbar color="primary" *appAuthorize="'Scheduler'">
     <button
-      id="schedule-publisher-button"
+      id="schedule-button"
       mat-icon-button
-      (click)="SubMenuNavigationClick('/publisher')"
+      (click)="SubMenuNavigationClick('/schedule')"
     >
       <mat-icon>schedule_send</mat-icon>
     </button>
-    <label for="schedule-publisher-button"> Schedule Publisher </label>
-  </mat-toolbar>
-
-  <mat-toolbar color="primary" *appAuthorize="'Scheduler'">
-    <button
-      id="schedule-editor-button"
-      mat-icon-button
-      (click)="SubMenuNavigationClick('/editor')"
-    >
-      <mat-icon>edit</mat-icon>
-    </button>
-    <label for="schedule-editor-button"> Schedule Publisher </label>
+    <label for="schedule-button"> Schedule </label>
   </mat-toolbar>
 
   <mat-toolbar color="primary">

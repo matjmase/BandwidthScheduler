@@ -1,4 +1,4 @@
-import { IColorModel } from '../../schedule-publisher/ColoredTimeFrameModel';
+import { IColorModel } from '../../schedule/schedule-publisher/ColoredTimeFrameModel';
 
 export interface UserLegendModel {
   Name: string;

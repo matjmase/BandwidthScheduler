@@ -5,11 +5,10 @@ import { LoginComponent } from './login/login.component';
 import { RegisterComponent } from './register/register.component';
 import { StaffBuilderComponent } from './staff-builder/staff-builder.component';
 import { AvailabilityBuilderComponent } from './availability-builder/availability-builder.component';
-import { SchedulePublisherComponent } from './schedule-publisher/schedule-publisher.component';
 import { ScheduleHistoryComponent } from './schedule-history/schedule-history.component';
 import { authorizeGuard } from './guards/authorize.guard';
 import { authenticateGuard } from './guards/authenticate.guard';
-import { ScheduleEditorComponent } from './schedule-editor/schedule-editor.component';
+import { ScheduleComponent } from './schedule/schedule.component';
 
 const routes: Routes = [
   {
@@ -50,16 +49,10 @@ const routes: Routes = [
         component: AvailabilityBuilderComponent,
       },
       {
-        path: 'publisher',
+        path: 'schedule',
         canActivate: [authorizeGuard],
         data: { roles: ['Scheduler'] },
-        component: SchedulePublisherComponent,
-      },
-      {
-        path: 'editor',
-        canActivate: [authorizeGuard],
-        data: { roles: ['Scheduler'] },
-        component: ScheduleEditorComponent,
+        component: ScheduleComponent,
       },
       {
         path: 'history',

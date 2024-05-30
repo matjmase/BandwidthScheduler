@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ScheduleEditorComponent } from './schedule-editor.component';
+import { ScheduleRecallComponent } from './schedule-recall.component';
 
-describe('ScheduleEditorComponent', () => {
-  let component: ScheduleEditorComponent;
-  let fixture: ComponentFixture<ScheduleEditorComponent>;
+describe('ScheduleRecallComponent', () => {
+  let component: ScheduleRecallComponent;
+  let fixture: ComponentFixture<ScheduleRecallComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ScheduleEditorComponent]
+      declarations: [ScheduleRecallComponent]
     })
     .compileComponents();
     
-    fixture = TestBed.createComponent(ScheduleEditorComponent);
+    fixture = TestBed.createComponent(ScheduleRecallComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -1,4 +1,4 @@
-import { CommitmentEntry } from '../../models/db/CommitmentEntry';
+import { CommitmentEntry } from '../../../models/db/CommitmentEntry';
 import { TimeFrameModel } from '../TimeFrameModel';
 
 export interface GridRenderingModel {

@@ -1,0 +1,16 @@
+<app-team-selector (TeamSelected)="SubmitTeam($event)"></app-team-selector>
+
+<mat-divider *ngIf="SelectedTeam"></mat-divider>
+
+<app-date-time-range-selector
+  *ngIf="SelectedTeam"
+  (DateTimeRangeSelected)="SubmitRangeModel($event)"
+></app-date-time-range-selector>
+
+<ng-container *ngIf="SelectedTimeRange">
+  <mat-divider></mat-divider>
+
+  <app-grid-legend-read-only [Model]="GridModel"></app-grid-legend-read-only>
+
+  <button mat-stroked-button color="warn">Recall All Commitments</button>
+</ng-container>

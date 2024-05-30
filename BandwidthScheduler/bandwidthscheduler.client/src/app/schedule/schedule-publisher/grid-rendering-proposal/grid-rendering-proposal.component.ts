@@ -1,11 +1,11 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { TimeFrameModel, TriStateButton } from '../TimeFrameModel';
-import { IScheduleProposalRequest } from '../../models/IScheduleProposalRequest';
-import { IScheduleProposalAmount } from '../../models/IScheduleProposalAmount';
+import { IScheduleProposalRequest } from '../../../models/IScheduleProposalRequest';
+import { IScheduleProposalAmount } from '../../../models/IScheduleProposalAmount';
 import { GridRenderingModel } from './grid-rendering-model';
-import { CommitmentEntry } from '../../models/db/CommitmentEntry';
+import { CommitmentEntry } from '../../../models/db/CommitmentEntry';
 import { IColorModel } from '../ColoredTimeFrameModel';
-import { UserLegendModel } from '../../commonControls/user-legend/user-legend-model';
+import { UserLegendModel } from '../../../commonControls/user-legend/user-legend-model';
 
 @Component({
   selector: 'app-grid-rendering-proposal',

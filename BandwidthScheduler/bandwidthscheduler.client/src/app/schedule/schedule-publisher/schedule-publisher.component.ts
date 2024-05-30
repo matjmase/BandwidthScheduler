@@ -1,23 +1,23 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { TimeFrameModel, TriStateButton } from './TimeFrameModel';
-import { IScheduleProposalRequest } from '../models/IScheduleProposalRequest';
-import { BackendConnectService } from '../services/backend-connect.service';
+import { IScheduleProposalRequest } from '../../models/IScheduleProposalRequest';
+import { BackendConnectService } from '../../services/backend-connect.service';
 import { IColorModel } from './ColoredTimeFrameModel';
 import { IGridRenderingGeneratedModel } from './grid-rendering-generated/grid-rendering-generated-model';
-import { ITeam } from '../models/db/ITeam';
-import { IScheduleProposalAmount } from '../models/IScheduleProposalAmount';
-import { IScheduleProposalUserProcessed } from '../models/IScheduleProposalUser';
-import { IScheduleProposalResponse } from '../models/IScheduleProposalResponse';
+import { ITeam } from '../../models/db/ITeam';
+import { IScheduleProposalAmount } from '../../models/IScheduleProposalAmount';
+import { IScheduleProposalUserProcessed } from '../../models/IScheduleProposalUser';
+import { IScheduleProposalResponse } from '../../models/IScheduleProposalResponse';
 import { HttpErrorResponse } from '@angular/common/http';
-import { StandardSnackbarService } from '../services/standard-snackbar.service';
-import { DateTimeRangeSelectorModel } from '../commonControls/date-time-range-selector/date-time-range-selector-model';
+import { StandardSnackbarService } from '../../services/standard-snackbar.service';
+import { DateTimeRangeSelectorModel } from '../../commonControls/date-time-range-selector/date-time-range-selector-model';
 import {
   GridRenderingModel,
   GridRenderingTimeFrame,
 } from './grid-rendering-proposal/grid-rendering-model';
-import { ICommitment } from '../models/db/ICommitment';
-import { CommitmentEntry } from '../models/db/CommitmentEntry';
+import { ICommitment } from '../../models/db/ICommitment';
+import { CommitmentEntry } from '../../models/db/CommitmentEntry';
 
 @Component({
   selector: 'app-schedule-publisher',
@@ -26,7 +26,6 @@ import { CommitmentEntry } from '../models/db/CommitmentEntry';
 })
 export class SchedulePublisherComponent {
   private timeSpan = 30;
-  private totalMinutes = 24 * 60;
 
   private proposalRequest: IScheduleProposalRequest | undefined;
   private proposalResponse: IScheduleProposalResponse | undefined;
@@ -70,7 +69,7 @@ export class SchedulePublisherComponent {
       this.SelectedTeam &&
       this.SelectedTimeRange
     ) {
-      this.backend.Publish.GetCommitments(
+      this.backend.Schedule.GetCommitments(
         this.SelectedTimeRange,
         this.SelectedTeam.id
       ).subscribe({
@@ -176,7 +175,9 @@ export class SchedulePublisherComponent {
       proposal: proposal,
     };
 
-    this.backend.Publish.RequestScheduleTimes(this.proposalRequest).subscribe({
+    this.backend.SchedulePublish.RequestScheduleTimes(
+      this.proposalRequest
+    ).subscribe({
       next: (resp) => {
         this.proposalResponse = resp;
         this.GeneratedModel = {
@@ -190,7 +191,7 @@ export class SchedulePublisherComponent {
   }
 
   public SubmitFinal() {
-    this.backend.Publish.SubmitSchedule({
+    this.backend.SchedulePublish.SubmitSchedule({
       ProposalRequest: this.proposalRequest!,
       ProposalResponse: this.proposalResponse!,
     }).subscribe({

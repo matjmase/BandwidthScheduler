@@ -1,10 +1,11 @@
 import { Component, Input } from '@angular/core';
 import { ColoredTimeFrameModel, IColorModel } from '../ColoredTimeFrameModel';
-import { Heap } from '../../DataStructures/Heap';
+import { Heap } from '../../../DataStructures/Heap';
 import { ProposalResponseWrapper } from '../schedule-publisher.component';
 import { IGridRenderingGeneratedModel } from './grid-rendering-generated-model';
-import { IScheduleProposalUserProcessed } from '../../models/IScheduleProposalUser';
-import { UserLegendModel } from '../../commonControls/user-legend/user-legend-model';
+import { IScheduleProposalUserProcessed } from '../../../models/IScheduleProposalUser';
+import { UserLegendModel } from '../../../commonControls/user-legend/user-legend-model';
+import { IGridLegendReadOnlyModel } from '../../common/grid-legend-read-only/grid-legend-read-only-model';
 
 @Component({
   selector: 'app-grid-rendering-generated',
@@ -17,11 +18,10 @@ export class GridRenderingGeneratedComponent {
     this.ProcessResponse(model);
   }
 
-  public LegendModel: UserLegendModel[] = [];
+  public GridModel: IGridLegendReadOnlyModel | undefined;
 
   private colorDict: { [key: string]: IColorModel } = {};
 
-  public ColoredFrames: ColoredTimeFrameModel[] = [];
   public ColoredFramesClear: IColorModel = {
     R: 255,
     G: 255,
@@ -54,7 +54,7 @@ export class GridRenderingGeneratedComponent {
     let i = 0;
     let j = 0;
 
-    this.ColoredFrames = [];
+    const coloredFrames: ColoredTimeFrameModel[] = [];
 
     const currentHeap = new Heap<ProposalResponseWrapper>(
       (f, s) => f.response.endTime < s.response.endTime
@@ -95,9 +95,7 @@ export class GridRenderingGeneratedComponent {
       const startTime = model.proposal.proposal[i].startTime;
       const endTime = model.proposal.proposal[i].endTime;
 
-      this.ColoredFrames.push(
-        new ColoredTimeFrameModel(startTime, endTime, [])
-      );
+      coloredFrames.push(new ColoredTimeFrameModel(startTime, endTime, []));
 
       // already blocked out
       const selectedExisting = model.existingCommitments.filter(
@@ -105,14 +103,14 @@ export class GridRenderingGeneratedComponent {
       );
 
       for (let k = 0; k < selectedExisting.length; k++) {
-        this.ColoredFrames[this.ColoredFrames.length - 1].Color.push(
+        coloredFrames[coloredFrames.length - 1].Color.push(
           this.ColoredFramesBlocked
         );
       }
 
       // employees
       for (let k = 0; k < currentArr.length; k++) {
-        this.ColoredFrames[this.ColoredFrames.length - 1].Color.push(
+        coloredFrames[coloredFrames.length - 1].Color.push(
           currentArr[k].colorModel
         );
       }
@@ -123,7 +121,7 @@ export class GridRenderingGeneratedComponent {
         k < model.proposal.proposal[i].employees - currentArr.length;
         k++
       ) {
-        this.ColoredFrames[this.ColoredFrames.length - 1].Color.push(
+        coloredFrames[coloredFrames.length - 1].Color.push(
           this.ColoredFramesDeficit
         );
       }
@@ -137,7 +135,7 @@ export class GridRenderingGeneratedComponent {
           selectedExisting.length;
         k++
       ) {
-        this.ColoredFrames[this.ColoredFrames.length - 1].Color.push(
+        coloredFrames[coloredFrames.length - 1].Color.push(
           this.ColoredFramesClear
         );
       }
@@ -159,28 +157,33 @@ export class GridRenderingGeneratedComponent {
       }
     }
 
-    this.LegendModel = [];
+    const legendModel: UserLegendModel[] = [];
 
-    this.LegendModel.push({
+    legendModel.push({
       Name: 'Clear',
       Color: this.ColoredFramesClear,
     });
 
-    this.LegendModel.push({
+    legendModel.push({
       Name: 'Deficit',
       Color: this.ColoredFramesDeficit,
     });
 
-    this.LegendModel.push({
+    legendModel.push({
       Name: 'Blocked Out',
       Color: this.ColoredFramesBlocked,
     });
 
     for (let [k, v] of Object.entries(this.colorDict)) {
-      this.LegendModel.push({
+      legendModel.push({
         Name: k,
         Color: v,
       });
     }
+
+    this.GridModel = {
+      LegendModel: legendModel,
+      ColoredFrames: coloredFrames,
+    };
   }
 }

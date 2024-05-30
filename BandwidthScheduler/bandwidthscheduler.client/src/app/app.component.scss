@@ -23,9 +23,9 @@ table {
 }
 
 @mixin lockWidth($percentage) {
-  max-width: #{$percentage + "vw"};
-  width: #{$percentage + "vw"};
-  min-width: #{$percentage + "vw"};
+  max-width: #{$percentage + "%"};
+  width: #{$percentage + "%"};
+  min-width: #{$percentage + "%"};
 }
 
 .side-bar {

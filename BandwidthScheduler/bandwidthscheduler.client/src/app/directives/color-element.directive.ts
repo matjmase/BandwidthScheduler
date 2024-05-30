@@ -6,7 +6,7 @@ import {
   OnInit,
   SimpleChanges,
 } from '@angular/core';
-import { IColorModel } from '../schedule-publisher/ColoredTimeFrameModel';
+import { IColorModel } from '../schedule/schedule-publisher/ColoredTimeFrameModel';
 
 @Directive({
   selector: '[appColorElement]',
