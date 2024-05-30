@@ -1,6 +1,6 @@
 <ng-template #content let-modal>
   <div class="modal-header">
-    <h4 class="modal-title" id="modal-basic-title">Profile update</h4>
+    <h4 class="modal-title" id="modal-basic-title">{{ Model?.title }}</h4>
     <button
       type="button"
       class="btn-close"
@@ -9,7 +9,7 @@
     ></button>
   </div>
   <div class="modal-body">
-    <p>afwefawfe</p>
+    <p>{{ Model?.description }}</p>
   </div>
   <div class="modal-footer">
     <ng-container *ngIf="Model?.type === 0">

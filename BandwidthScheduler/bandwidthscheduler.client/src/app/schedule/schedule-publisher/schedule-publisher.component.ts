@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { TimeFrameModel, TriStateButton } from './TimeFrameModel';
 import { IScheduleProposalRequest } from '../../models/IScheduleProposalRequest';
@@ -18,6 +18,11 @@ import {
 } from './grid-rendering-proposal/grid-rendering-model';
 import { ICommitment } from '../../models/db/ICommitment';
 import { CommitmentEntry } from '../../models/db/CommitmentEntry';
+import { MessageModalBoxComponent } from '../../commonControls/message-modal-box/message-modal-box.component';
+import {
+  IMessageModalBoxModel,
+  MessageModalBoxType,
+} from '../../commonControls/message-modal-box/message-modal-box-model';
 
 @Component({
   selector: 'app-schedule-publisher',
@@ -25,6 +30,14 @@ import { CommitmentEntry } from '../../models/db/CommitmentEntry';
   styleUrl: './schedule-publisher.component.scss',
 })
 export class SchedulePublisherComponent {
+  @ViewChild('submitModal') submitModal!: MessageModalBoxComponent;
+  public SubmitModalModel: IMessageModalBoxModel = {
+    title: 'Confirmation',
+    description:
+      'Are you sure you want to recall all commitments during this time period?',
+    type: MessageModalBoxType.Confirmation,
+  };
+
   private timeSpan = 30;
 
   private proposalRequest: IScheduleProposalRequest | undefined;
@@ -190,7 +203,11 @@ export class SchedulePublisherComponent {
     });
   }
 
-  public SubmitFinal() {
+  public async SubmitFinal() {
+    const confirm = await this.submitModal.ShowModal();
+
+    if (!confirm) return;
+
     this.backend.SchedulePublish.SubmitSchedule({
       ProposalRequest: this.proposalRequest!,
       ProposalResponse: this.proposalResponse!,
