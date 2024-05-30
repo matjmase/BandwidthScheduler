@@ -18,11 +18,11 @@
   (FormModel)="SubmitRenderModel($event)"
 ></app-grid-rendering-form>
 
-<mat-divider *ngIf="TimeFrames"></mat-divider>
+<mat-divider *ngIf="RenderingModel"></mat-divider>
 
 <app-grid-rendering-proposal
-  *ngIf="TimeFrames"
-  [Model]="TimeFrames!"
+  *ngIf="RenderingModel"
+  [Model]="RenderingModel!"
   (Proposal)="SubmitProposal($event)"
 ></app-grid-rendering-proposal>
 

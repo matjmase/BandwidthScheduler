@@ -2,6 +2,7 @@
 using BandwidthScheduler.Server.Common.DataStructures;
 using BandwidthScheduler.Server.Common.Extensions;
 using BandwidthScheduler.Server.Common.Role;
+using BandwidthScheduler.Server.Common.Static;
 using BandwidthScheduler.Server.Controllers.Common;
 using BandwidthScheduler.Server.Controllers.Validation;
 using BandwidthScheduler.Server.DbModels;
@@ -32,6 +33,34 @@ namespace BandwidthScheduler.Server.Controllers
         {
             _db = db;
             _config = config;
+        }
+
+        [HttpGet("commitments")]
+        [Authorize(Roles = "Scheduler")]
+        public async Task<IActionResult> GetCommitments([FromHeader(Name = "start")] string startString, [FromHeader(Name = "end")] string endString, [FromHeader(Name = "teamId")] int teamId)
+        {
+            DateTime start = new DateTime();
+            DateTime end = new DateTime();
+            try
+            {
+                start = DateTime.Parse(startString);
+                end = DateTime.Parse(endString);
+            }
+            catch
+            {
+                return BadRequest("start and or end could not be parsed");
+            }
+
+            start = start.ToUniversalTime();
+            end = end.ToUniversalTime();
+            var current = DbModelFunction.GetCurrentUser(HttpContext);
+
+            var commitments = await GetCommitmentAnyIntersection(_db.Commitments, teamId, start, end).Include(e => e.User).ToArrayAsync();
+
+            commitments.Foreach(e => e.ExplicitlyMarkDateTimesAsUtc());
+            commitments.Foreach(e => e.NullifyRedundancy());
+
+            return Ok(commitments);
         }
 
         [HttpPost("proposal")]
@@ -202,7 +231,6 @@ namespace BandwidthScheduler.Server.Controllers
             );
         }
 
-
         [NonAction]
         private static IQueryable<Commitment> GetCommitmentRightNeighbor(DbSet<Commitment> db, IEnumerable<int> userIds, int teamId, DateTime start, DateTime end)
         {
@@ -254,6 +282,21 @@ namespace BandwidthScheduler.Server.Controllers
             );
         }
 
+        [NonAction]
+        private static IQueryable<Commitment> GetCommitmentAnyIntersection(IQueryable<Commitment> db, int teamId, DateTime start, DateTime end)
+        {
+            return db.Include(e => e.User).Include(e => e.Team).Where(CommitmentIntersectionExpression(teamId, start, end));
+        }
+
+        [NonAction]
+        public static Expression<Func<Commitment, bool>> CommitmentIntersectionExpression(int teamId, DateTime start, DateTime end)
+        {
+            return e =>
+            e.TeamId == teamId &&
+            !(
+                (e.EndTime <= start) || e.StartTime >= end
+            );
+        }
         #endregion
     }
 }

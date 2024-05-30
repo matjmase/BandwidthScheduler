@@ -1,37 +1,4 @@
-<div class="legend-left">
-  <mat-list class="card-margin">
-    <h3>Legend</h3>
-    <mat-list-item>
-      <div class="flex-row-center">
-        <div [appColorElement]="ColoredFramesClear" class="legend-color-bubble">
-          &nbsp;
-        </div>
-        <span>Clear</span>
-      </div></mat-list-item
-    >
-
-    <mat-list-item>
-      <div class="flex-row-center">
-        <div
-          [appColorElement]="ColoredFramesDeficit"
-          class="legend-color-bubble"
-        >
-          &nbsp;
-        </div>
-        <span>Shortage</span>
-      </div></mat-list-item
-    >
-
-    <mat-list-item *ngFor="let kv of ColorDict | keyvalue">
-      <div class="flex-row-center">
-        <div [appColorElement]="kv.value" class="legend-color-bubble">
-          &nbsp;
-        </div>
-        <span>{{ kv.key }}</span>
-      </div></mat-list-item
-    >
-  </mat-list>
-</div>
+<app-user-legend [Model]="LegendModel"></app-user-legend>
 
 <div class="flex-row-scroll">
   <div class="flex-column" *ngFor="let coloredFrame of ColoredFrames">

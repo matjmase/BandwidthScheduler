@@ -53,6 +53,7 @@ import { SpinnerCardComponent } from './commonControls/spinner-card/spinner-card
 import { TimePickerSnapComponent } from './commonControls/time-picker-snap/time-picker-snap.component';
 import { DateTimeRangeSelectorComponent } from './commonControls/date-time-range-selector/date-time-range-selector.component';
 import { DateTimeRangeSelectorValidatorDirective } from './validators/date-time-range-selector-validator.directive';
+import { UserLegendComponent } from './commonControls/user-legend/user-legend.component';
 
 @NgModule({
   declarations: [
@@ -80,6 +81,7 @@ import { DateTimeRangeSelectorValidatorDirective } from './validators/date-time-
     TimePickerSnapComponent,
     DateTimeRangeSelectorComponent,
     DateTimeRangeSelectorValidatorDirective,
+    UserLegendComponent,
   ],
   imports: [
     BrowserModule,

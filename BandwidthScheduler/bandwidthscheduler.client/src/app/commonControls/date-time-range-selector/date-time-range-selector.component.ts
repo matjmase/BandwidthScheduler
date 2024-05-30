@@ -26,7 +26,6 @@ export class DateTimeRangeSelectorComponent implements ControlValueAccessor {
     new EventEmitter<DateTimeRangeSelectorModel>();
 
   public OnSubmit(form: NgForm): void {
-    console.log('change');
     const date: Date = form.value.datePicker;
     const startTime: TimePickerModel = form.value.startTimePicker;
     const endTime: TimePickerModel = form.value.endTimePicker;

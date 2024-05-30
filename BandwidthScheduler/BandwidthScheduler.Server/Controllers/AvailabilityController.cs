@@ -31,7 +31,7 @@ namespace BandwidthScheduler.Server.Controllers
             _config = config;
         }
 
-        [HttpGet()]
+        [HttpGet]
         public async Task<IActionResult> GetAsync([FromHeader(Name = "start")] string startString, [FromHeader(Name = "end")] string endString)
         {
             DateTime start = new DateTime();
@@ -54,10 +54,10 @@ namespace BandwidthScheduler.Server.Controllers
 
             var commitments = await GetCommitmentAnyIntersection(_db.Commitments, current.Id, start, end).ToArrayAsync();
 
-            commitments.Foreach(e => e.NullifyObjectDepth());
+            commitments.Foreach(e => e.NullifyRedundancy());
             commitments.Foreach(e => e.ExplicitlyMarkDateTimesAsUtc());
 
-            availabilities.Foreach(e => e.NullifyObjectDepth());
+            availabilities.Foreach(e => e.NullifyRedundancy());
             availabilities.Foreach(e => e.ExplicitlyMarkDateTimesAsUtc());
 
             return Ok(new

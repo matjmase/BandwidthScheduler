@@ -1,0 +1,13 @@
+<div class="legend-left">
+  <mat-list class="card-margin" *ngIf="Model.length">
+    <h3>Legend</h3>
+    <mat-list-item *ngFor="let item of Model">
+      <div class="flex-row-center">
+        <div [appColorElement]="item.Color" class="legend-color-bubble">
+          &nbsp;
+        </div>
+        <span>{{ item.Name }}</span>
+      </div></mat-list-item
+    >
+  </mat-list>
+</div>

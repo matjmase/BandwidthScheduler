@@ -1,6 +1,5 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { GridRenderingFormModel } from './grid-rendering-form-model';
 
 @Component({
   selector: 'app-grid-rendering-form',
@@ -8,16 +7,13 @@ import { GridRenderingFormModel } from './grid-rendering-form-model';
   styleUrl: './grid-rendering-form.component.scss',
 })
 export class GridRenderingFormComponent {
-  @Output() FormModel: EventEmitter<GridRenderingFormModel> =
-    new EventEmitter<GridRenderingFormModel>();
+  @Output() FormModel: EventEmitter<number> = new EventEmitter<number>();
 
   constructor() {}
 
   public Submit(form: NgForm) {
-    const model: GridRenderingFormModel = {
-      maxEmployees: form.value.maxEmployees as number,
-    };
+    const maxEmployees = form.value.maxEmployees as number;
 
-    this.FormModel.emit(model);
+    this.FormModel.emit(maxEmployees);
   }
 }

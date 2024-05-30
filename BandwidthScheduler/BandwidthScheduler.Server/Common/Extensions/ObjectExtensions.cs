@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Collections;
+using System.Reflection;
 
 namespace BandwidthScheduler.Server.Common.Extensions
 {
@@ -33,34 +34,88 @@ namespace BandwidthScheduler.Server.Common.Extensions
             }
         }
 
-        public static void NullifyObjectDepth(this object obj, int depth = 0)
+        public static void NullifyRedundancy(this object obj)
+        {
+            NullifyRedundancyRecursive(obj, new HashSet<Type>());
+        }
+
+        private static void NullifyRedundancyRecursive(object obj, HashSet<Type> seenTypes)
         {
             Type t = obj.GetType();
+            seenTypes.Add(t);
 
-            // Loop through the properties.
             PropertyInfo[] props = t.GetProperties();
             for (int i = 0; i < props.Length; i++)
             {
                 PropertyInfo p = props[i];
-                // If a property is DateTime or DateTime?, set DateTimeKind to DateTimeKind.Utc.
+
                 if (p.PropertyType.IsClass)
                 {
-                    if (depth != 0)
-                    {
-                        object? nestedObj = p.GetValue(obj, null);
-
-                        if (nestedObj != null)
-                        {
-                            nestedObj.NullifyObjectDepth(depth - 1);
-                        }
-                    }
-                    // Same check for nullable DateTime.
-                    else
+                    if (seenTypes.Contains(p.PropertyType))
                     {
                         p.SetValue(obj, null);
                     }
+                    else
+                    {
+                        var value = p.GetValue(obj, null);
+
+                        if (value != null)
+                        {
+                            NullifyRedundancyRecursive(value, seenTypes);
+                        }
+                    }
+                }
+                else
+                { 
+                    var enumerableType = GetAnyElementType(p.PropertyType);
+
+                    if (enumerableType != null && enumerableType.IsClass)
+                    {
+                        if (seenTypes.Contains(enumerableType))
+                        {
+                            p.SetValue(obj, null);
+                        }
+                        else
+                        {
+                            if (p.PropertyType.IsArray)
+                            {
+                                foreach (var item in (Array)p.GetValue(obj, null))
+                                {
+                                    NullifyRedundancyRecursive(item, seenTypes);
+                                }
+                            }
+                            else
+                            {
+                                foreach (var item in (IEnumerable)p.GetValue(obj, null))
+                                {
+                                    NullifyRedundancyRecursive(item, seenTypes);
+                                }
+                            }
+                        }
+                    }
                 }
             }
+
+            seenTypes.Remove(t);
+        }
+
+        public static Type GetAnyElementType(Type type)
+        {
+            // Type is Array
+            // short-circuit if you expect lots of arrays 
+            if (type.IsArray)
+                return type.GetElementType();
+
+            // type is IEnumerable<T>;
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                return type.GetGenericArguments()[0];
+
+            // type implements/extends IEnumerable<T>;
+            var enumType = type.GetInterfaces()
+                                    .Where(t => t.IsGenericType &&
+                                           t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                                    .Select(t => t.GenericTypeArguments[0]).FirstOrDefault();
+            return enumType ?? type;
         }
     }
 }

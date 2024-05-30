@@ -4,7 +4,6 @@ import { TimeFrameModel, TriStateButton } from './TimeFrameModel';
 import { IScheduleProposalRequest } from '../models/IScheduleProposalRequest';
 import { BackendConnectService } from '../services/backend-connect.service';
 import { IColorModel } from './ColoredTimeFrameModel';
-import { GridRenderingFormModel } from './grid-rendering-form/grid-rendering-form-model';
 import { IGridRenderingGeneratedModel } from './grid-rendering-generated/grid-rendering-generated-model';
 import { ITeam } from '../models/db/ITeam';
 import { IScheduleProposalAmount } from '../models/IScheduleProposalAmount';
@@ -13,6 +12,12 @@ import { IScheduleProposalResponse } from '../models/IScheduleProposalResponse';
 import { HttpErrorResponse } from '@angular/common/http';
 import { StandardSnackbarService } from '../services/standard-snackbar.service';
 import { DateTimeRangeSelectorModel } from '../commonControls/date-time-range-selector/date-time-range-selector-model';
+import {
+  GridRenderingModel,
+  GridRenderingTimeFrame,
+} from './grid-rendering-proposal/grid-rendering-model';
+import { ICommitment } from '../models/db/ICommitment';
+import { CommitmentEntry } from '../models/db/CommitmentEntry';
 
 @Component({
   selector: 'app-schedule-publisher',
@@ -22,7 +27,6 @@ import { DateTimeRangeSelectorModel } from '../commonControls/date-time-range-se
 export class SchedulePublisherComponent {
   private timeSpan = 30;
   private totalMinutes = 24 * 60;
-  private totalBlock = this.totalMinutes / this.timeSpan;
 
   private proposalRequest: IScheduleProposalRequest | undefined;
   private proposalResponse: IScheduleProposalResponse | undefined;
@@ -31,9 +35,12 @@ export class SchedulePublisherComponent {
 
   public SelectedTimeRange: DateTimeRangeSelectorModel | undefined;
 
-  public RenderModel: GridRenderingFormModel | undefined;
+  public SelectedMaxEmployees: number | undefined;
 
-  public TimeFrames: TimeFrameModel[] | undefined;
+  private commitmentEntries: CommitmentEntry[] = [];
+  private actualMaxEmployees: number = 0;
+
+  public RenderingModel: GridRenderingModel | undefined;
 
   public GeneratedModel: IGridRenderingGeneratedModel | undefined;
 
@@ -44,37 +51,115 @@ export class SchedulePublisherComponent {
 
   public SubmitTeam(team: ITeam) {
     this.SelectedTeam = team;
+    this.TryCreateRenderingModel();
   }
 
   public SubmitRangeModel(model: DateTimeRangeSelectorModel) {
     this.SelectedTimeRange = model;
+    this.TryCreateRenderingModel();
   }
 
-  public SubmitRenderModel(model: GridRenderingFormModel) {
-    this.RenderModel = model;
+  public SubmitRenderModel(max: number) {
+    this.SelectedMaxEmployees = max;
+    this.TryCreateRenderingModel();
+  }
 
-    this.TimeFrames = [];
+  private TryCreateRenderingModel() {
+    if (
+      this.SelectedMaxEmployees &&
+      this.SelectedTeam &&
+      this.SelectedTimeRange
+    ) {
+      this.backend.Publish.GetCommitments(
+        this.SelectedTimeRange,
+        this.SelectedTeam.id
+      ).subscribe({
+        next: (commitments) => {
+          this.commitmentEntries = commitments.map(
+            (c) => new CommitmentEntry(c)
+          );
+          this.CreateRenderingModel(
+            this.SelectedMaxEmployees!,
+            this.SelectedTimeRange!,
+            this.commitmentEntries
+          );
+        },
+      });
+    }
+  }
+
+  private CreateRenderingModel(
+    max: number,
+    range: DateTimeRangeSelectorModel,
+    commitments: CommitmentEntry[]
+  ) {
+    const blockedOutCommitments: CommitmentEntry[][] = [];
+
+    let minCommitment = 0;
+    for (
+      let i = 0;
+      this.GetDateTransformed(i + 1, range.start) <= range.end;
+      i++
+    ) {
+      const startTime = this.GetDateTransformed(i, range.start);
+      const endTime = this.GetDateTransformed(i + 1, range.start);
+
+      const commitmentsToAdd = commitments.filter(
+        (c) => !(endTime <= c.startTime || startTime >= c.endTime)
+      );
+
+      minCommitment = Math.max(minCommitment, commitmentsToAdd.length);
+
+      blockedOutCommitments.push(commitmentsToAdd);
+    }
 
     const newTimeFrames: TimeFrameModel[] = [];
-
-    console.log(this.SelectedTimeRange);
+    this.actualMaxEmployees = Math.max(minCommitment, max);
 
     for (
       let i = 0;
-      this.GetDateTransformed(i + 1, this.SelectedTimeRange!.start) <=
-      this.SelectedTimeRange!.end;
+      this.GetDateTransformed(i + 1, range.start) <= range.end;
       i++
     ) {
+      const startTime = this.GetDateTransformed(i, range.start);
+      const endTime = this.GetDateTransformed(i + 1, range.start);
+
+      const blockedOut = blockedOutCommitments[i].length;
+
       newTimeFrames.push(
         new TimeFrameModel(
-          this.GetDateTransformed(i, this.SelectedTimeRange!.start),
-          this.GetDateTransformed(i + 1, this.SelectedTimeRange!.start),
-          new Array(this.RenderModel.maxEmployees).fill(false)
+          startTime,
+          endTime,
+          new Array(this.actualMaxEmployees - blockedOut).fill(
+            TriStateButton.NotSelected
+          ) as TriStateButton[]
         )
       );
     }
 
-    this.TimeFrames = newTimeFrames;
+    const timeFrames: GridRenderingTimeFrame[] = [];
+
+    for (
+      let i = 0;
+      this.GetDateTransformed(i + 1, range.start) <= range.end;
+      i++
+    ) {
+      const startTime = this.GetDateTransformed(i, range.start);
+      const endTime = this.GetDateTransformed(i + 1, range.start);
+
+      const timeFrame: GridRenderingTimeFrame = {
+        StartTime: startTime,
+        EndTime: endTime,
+        Open: newTimeFrames[i],
+        Taken: blockedOutCommitments[i],
+      };
+
+      timeFrames.push(timeFrame);
+    }
+
+    this.RenderingModel = {
+      TimeFrames: timeFrames,
+    };
   }
 
   public GetDateTransformed(increment: number, currentDate: Date): Date {
@@ -95,7 +180,8 @@ export class SchedulePublisherComponent {
       next: (resp) => {
         this.proposalResponse = resp;
         this.GeneratedModel = {
-          maxNumberOfPeople: this.RenderModel!.maxEmployees,
+          maxNumberOfPeople: this.actualMaxEmployees,
+          existingCommitments: this.commitmentEntries,
           proposal: this.proposalRequest!,
           responseRaw: this.proposalResponse!,
         };

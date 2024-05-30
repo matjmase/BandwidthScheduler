@@ -1,31 +1,45 @@
+<app-user-legend *ngIf="LegendModel" [Model]="LegendModel"></app-user-legend>
+
 <div style="display: block">
   <div class="flex-row-scroll">
     <div
       class="flex-column"
       (mouseleave)="ClearAllHover()"
-      *ngFor="let timeFrame of TimeFrames"
+      *ngFor="let timeFrames of RenderingModel?.TimeFrames"
     >
       <mat-card class="padded-card">
-        {{ timeFrame.StartTime | date : "hh:mm aa" }}
+        {{ timeFrames.StartTime | date : "hh:mm aa" }}
       </mat-card>
 
-      <div *ngFor="let levelItem of timeFrame.Level.reverse(); let i = index">
+      <div
+        *ngFor="let levelItem of timeFrames.Open.Level.reverse(); let i = index"
+      >
         <div
           class="card-clickable"
           [ngClass]="{
             'card-clickable-hovered': levelItem === 1,
             'card-clickable-selected': levelItem === 2
           }"
-          (mouseenter)="timeFrame.SetLevelHover(timeFrame.Level.length - 1 - i)"
-          (mouseleave)="timeFrame.SetLevelLeave()"
-          (mousedown)="timeFrame.SetLevelSelect(timeFrame.Level.length - 1 - i)"
+          (mouseenter)="
+            timeFrames.Open.SetLevelHover(timeFrames.Open.Level.length - 1 - i)
+          "
+          (mouseleave)="timeFrames.Open.SetLevelLeave()"
+          (mousedown)="
+            timeFrames.Open.SetLevelSelect(timeFrames.Open.Level.length - 1 - i)
+          "
         >
           &nbsp;
         </div>
       </div>
+      <div
+        *ngFor="let taken of timeFrames.Taken"
+        class="card-clickable"
+        [appColorElement]="ColorDict[taken.user.email]"
+      >
+        &nbsp;
+      </div>
     </div>
   </div>
-
   <div class="spaced-flex-row">
     <div class="flex-fill">
       <button mat-stroked-button color="primary" (click)="GenerateProposal()">

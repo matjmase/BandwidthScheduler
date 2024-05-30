@@ -16,6 +16,11 @@ namespace BandwidthScheduler.Server.Controllers.Validation
             windowStart = default(DateTime);
             windowEnd = default(DateTime);
 
+            if (request.Proposal.Any(e => e.Employees < 0))
+            {
+                return false;
+            }    
+
             if (request == null || request.Proposal.Length == 0 || request.SelectedTeam == null)
             {
                 return false;

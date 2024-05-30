@@ -4,6 +4,7 @@ import { Heap } from '../../DataStructures/Heap';
 import { ProposalResponseWrapper } from '../schedule-publisher.component';
 import { IGridRenderingGeneratedModel } from './grid-rendering-generated-model';
 import { IScheduleProposalUserProcessed } from '../../models/IScheduleProposalUser';
+import { UserLegendModel } from '../../commonControls/user-legend/user-legend-model';
 
 @Component({
   selector: 'app-grid-rendering-generated',
@@ -16,6 +17,10 @@ export class GridRenderingGeneratedComponent {
     this.ProcessResponse(model);
   }
 
+  public LegendModel: UserLegendModel[] = [];
+
+  private colorDict: { [key: string]: IColorModel } = {};
+
   public ColoredFrames: ColoredTimeFrameModel[] = [];
   public ColoredFramesClear: IColorModel = {
     R: 255,
@@ -27,8 +32,11 @@ export class GridRenderingGeneratedComponent {
     G: 0,
     B: 0,
   };
-
-  public ColorDict: { [key: string]: IColorModel } = {};
+  public ColoredFramesBlocked: IColorModel = {
+    R: 100,
+    G: 100,
+    B: 100,
+  };
 
   constructor() {}
 
@@ -53,9 +61,11 @@ export class GridRenderingGeneratedComponent {
     );
     const currentArr: ProposalResponseWrapper[] = [];
 
+    this.colorDict = {};
+
     const incrementResponse = () => {
-      if (this.ColorDict[response[j].email] === undefined) {
-        this.ColorDict[response[j].email] = {
+      if (this.colorDict[response[j].email] === undefined) {
+        this.colorDict[response[j].email] = {
           R: Math.random() * 255,
           G: Math.random() * 255,
           B: Math.random() * 255,
@@ -64,7 +74,7 @@ export class GridRenderingGeneratedComponent {
 
       const wrapper = new ProposalResponseWrapper(
         response[j],
-        this.ColorDict[response[j].email]
+        this.colorDict[response[j].email]
       );
       currentHeap.Add(wrapper);
       currentArr.push(wrapper);
@@ -79,18 +89,26 @@ export class GridRenderingGeneratedComponent {
       ) {
         const wrapper = currentHeap.Pop();
         const index = currentArr.indexOf(wrapper);
-        console.log('pop!');
-        console.log(currentArr[index]);
         currentArr.splice(index, 1);
       }
 
+      const startTime = model.proposal.proposal[i].startTime;
+      const endTime = model.proposal.proposal[i].endTime;
+
       this.ColoredFrames.push(
-        new ColoredTimeFrameModel(
-          model.proposal.proposal[i].startTime,
-          model.proposal.proposal[i].endTime,
-          []
-        )
+        new ColoredTimeFrameModel(startTime, endTime, [])
       );
+
+      // already blocked out
+      const selectedExisting = model.existingCommitments.filter(
+        (e) => !(endTime <= e.startTime || startTime >= e.endTime)
+      );
+
+      for (let k = 0; k < selectedExisting.length; k++) {
+        this.ColoredFrames[this.ColoredFrames.length - 1].Color.push(
+          this.ColoredFramesBlocked
+        );
+      }
 
       // employees
       for (let k = 0; k < currentArr.length; k++) {
@@ -113,7 +131,10 @@ export class GridRenderingGeneratedComponent {
       // filler
       for (
         let k = 0;
-        k < model.maxNumberOfPeople - model.proposal.proposal[i].employees;
+        k <
+        model.maxNumberOfPeople -
+          model.proposal.proposal[i].employees -
+          selectedExisting.length;
         k++
       ) {
         this.ColoredFrames[this.ColoredFrames.length - 1].Color.push(
@@ -136,6 +157,30 @@ export class GridRenderingGeneratedComponent {
       } else {
         incrementResponse();
       }
+    }
+
+    this.LegendModel = [];
+
+    this.LegendModel.push({
+      Name: 'Clear',
+      Color: this.ColoredFramesClear,
+    });
+
+    this.LegendModel.push({
+      Name: 'Deficit',
+      Color: this.ColoredFramesDeficit,
+    });
+
+    this.LegendModel.push({
+      Name: 'Blocked Out',
+      Color: this.ColoredFramesBlocked,
+    });
+
+    for (let [k, v] of Object.entries(this.colorDict)) {
+      this.LegendModel.push({
+        Name: k,
+        Color: v,
+      });
     }
   }
 }
