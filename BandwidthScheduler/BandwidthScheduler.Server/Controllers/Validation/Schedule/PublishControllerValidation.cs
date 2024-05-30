@@ -5,28 +5,28 @@ using BandwidthScheduler.Server.DbModels;
 using BandwidthScheduler.Server.Models.PublishController.Request;
 using BandwidthScheduler.Server.Models.PublishController.Response;
 
-namespace BandwidthScheduler.Server.Controllers.Validation
+namespace BandwidthScheduler.Server.Controllers.Validation.Schedule
 {
     public static class PublishControllerValidation
     {
         // Proposal
 
         public static bool ValidateProposalRequest(ScheduleProposalRequest request, out DateTime windowStart, out DateTime windowEnd)
-        { 
-            windowStart = default(DateTime);
-            windowEnd = default(DateTime);
+        {
+            windowStart = default;
+            windowEnd = default;
 
             if (request.Proposal.Any(e => e.Employees < 0))
             {
                 return false;
-            }    
+            }
 
             if (request == null || request.Proposal.Length == 0 || request.SelectedTeam == null)
             {
                 return false;
             }
 
-            if (!ValidateProposalContinuity(request.Proposal, out windowStart, out windowEnd)) 
+            if (!ValidateProposalContinuity(request.Proposal, out windowStart, out windowEnd))
             {
                 return false;
             }
@@ -63,8 +63,8 @@ namespace BandwidthScheduler.Server.Controllers.Validation
 
             // validate request encapsulates response
 
-            var submitStart = submit.ProposalResponse.ProposalUsers.CompareOrDefault((f,s) => f.StartTime < s.StartTime).StartTime;
-            var submitEnd = submit.ProposalResponse.ProposalUsers.CompareOrDefault((f,s) => f.EndTime > s.EndTime).EndTime;
+            var submitStart = submit.ProposalResponse.ProposalUsers.CompareOrDefault((f, s) => f.StartTime < s.StartTime).StartTime;
+            var submitEnd = submit.ProposalResponse.ProposalUsers.CompareOrDefault((f, s) => f.EndTime > s.EndTime).EndTime;
 
             return submitStart >= windowStart && submitEnd <= windowEnd;
         }

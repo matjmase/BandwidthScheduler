@@ -147,6 +147,26 @@ export class ScheduleRecallComponent {
   public async RecallCommitmentsClicked(): Promise<void> {
     const result = await this.recallModal.ShowModal();
 
-    console.log(result);
+    if (!result) return;
+
+    this.backend.ScheduleRecall.RecallSchedule({
+      teamId: this.SelectedTeam!.id,
+      start: this.SelectedTimeRange!.start,
+      end: this.SelectedTimeRange!.end,
+    }).subscribe({
+      complete: () => {
+        this.GridModel = undefined;
+        this.SelectedTimeRange = undefined;
+        this.SelectedTeam = undefined;
+        this.snackBar.OpenConfirmationMessage(
+          'Successfully recalled schedule for time window'
+        );
+      },
+      error: () => {
+        this.snackBar.OpenErrorMessage(
+          'Error recalling schedule for the time window'
+        );
+      },
+    });
   }
 }
