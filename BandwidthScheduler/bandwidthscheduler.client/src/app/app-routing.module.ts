@@ -9,6 +9,7 @@ import { SchedulePublisherComponent } from './schedule-publisher/schedule-publis
 import { ScheduleHistoryComponent } from './schedule-history/schedule-history.component';
 import { authorizeGuard } from './guards/authorize.guard';
 import { authenticateGuard } from './guards/authenticate.guard';
+import { ScheduleEditorComponent } from './schedule-editor/schedule-editor.component';
 
 const routes: Routes = [
   {
@@ -53,6 +54,12 @@ const routes: Routes = [
         canActivate: [authorizeGuard],
         data: { roles: ['Scheduler'] },
         component: SchedulePublisherComponent,
+      },
+      {
+        path: 'editor',
+        canActivate: [authorizeGuard],
+        data: { roles: ['Scheduler'] },
+        component: ScheduleEditorComponent,
       },
       {
         path: 'history',

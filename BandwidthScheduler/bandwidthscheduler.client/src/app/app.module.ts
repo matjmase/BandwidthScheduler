@@ -54,6 +54,7 @@ import { TimePickerSnapComponent } from './commonControls/time-picker-snap/time-
 import { DateTimeRangeSelectorComponent } from './commonControls/date-time-range-selector/date-time-range-selector.component';
 import { DateTimeRangeSelectorValidatorDirective } from './validators/date-time-range-selector-validator.directive';
 import { UserLegendComponent } from './commonControls/user-legend/user-legend.component';
+import { ScheduleEditorComponent } from './schedule-editor/schedule-editor.component';
 
 @NgModule({
   declarations: [
@@ -82,6 +83,7 @@ import { UserLegendComponent } from './commonControls/user-legend/user-legend.co
     DateTimeRangeSelectorComponent,
     DateTimeRangeSelectorValidatorDirective,
     UserLegendComponent,
+    ScheduleEditorComponent,
   ],
   imports: [
     BrowserModule,
