@@ -31,7 +31,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { authInterceptor } from './interceptors/auth.interceptor';
 import { AuthenticateDirective } from './directives/authenticate.directive';
 import { StaffBuilderComponent } from './staff-builder/staff-builder.component';
-import { AvailabilityBuilderComponent } from './availability-builder/availability-builder.component';
 import { ScheduleHistoryComponent } from './schedule-history/schedule-history.component';
 import { AuthorizeDirective } from './directives/authorize.directive';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -59,6 +58,11 @@ import { GridRenderingProposalComponent } from './schedule/schedule-publisher/gr
 import { SchedulePublisherComponent } from './schedule/schedule-publisher/schedule-publisher.component';
 import { ScheduleRecallComponent } from './schedule/schedule-recall/schedule-recall.component';
 import { MessageModalBoxComponent } from './commonControls/message-modal-box/message-modal-box.component';
+import { AvailabilityAndCommitmentsComponent } from './availability-and-commitments/availability-and-commitments.component';
+import { AvailabilityComponent } from './availability-and-commitments/availability/availability.component';
+import { CommitmentComponent } from './availability-and-commitments/commitment/commitment.component';
+import { RemoveTeamComponent } from './staff-builder/remove-team/remove-team.component';
+import { EditTeamComponent } from './staff-builder/edit-team/edit-team.component';
 
 @NgModule({
   declarations: [
@@ -71,7 +75,6 @@ import { MessageModalBoxComponent } from './commonControls/message-modal-box/mes
     LoginFormValidatorDirective,
     AuthenticateDirective,
     StaffBuilderComponent,
-    AvailabilityBuilderComponent,
     SchedulePublisherComponent,
     ScheduleHistoryComponent,
     AuthorizeDirective,
@@ -91,6 +94,11 @@ import { MessageModalBoxComponent } from './commonControls/message-modal-box/mes
     GridLegendReadOnlyComponent,
     ScheduleComponent,
     MessageModalBoxComponent,
+    AvailabilityAndCommitmentsComponent,
+    AvailabilityComponent,
+    CommitmentComponent,
+    RemoveTeamComponent,
+    EditTeamComponent,
   ],
   imports: [
     BrowserModule,

@@ -1,64 +1,77 @@
 <app-spinner-card
-  [stretch]="SpinnerCardStretch"
+  [stretch]="GetHorizontalStretch()"
   [spinnerActive]="WaitingOnSubmit"
-  [ngClass]="{ 'card-disabled': !DbTeam }"
 >
   <mat-card-title> Add/Remove Team Members </mat-card-title>
   <mat-card-content>
-    <div class="flex-row" [inert]="WaitingOnSubmit">
-      <div class="grow-column">
-        <h6>Not Selected</h6>
-        <mat-card class="column-height">
-          <mat-selection-list>
-            <mat-list-option
-              *ngFor="let user of DbNotSelectedUsers"
-              (selectedChange)="user.IsSelected = $event"
-              [selected]="user.IsSelected"
-            >
-              {{ user.Value.email }}
-            </mat-list-option>
-            <mat-list-option
-              class="selected-change-items"
-              *ngFor="let user of UserToRemoveChange"
-              (selectedChange)="user.IsSelected = $event"
-              [selected]="user.IsSelected"
-            >
-              {{ user.Value.email }}
-            </mat-list-option>
-          </mat-selection-list>
-        </mat-card>
-      </div>
-      <div class="center-shrink-column">
-        <button mat-stroked-button color="primary" (click)="SelectUsers()">
-          &gt;
-        </button>
-        <button mat-stroked-button color="primary" (click)="UnselectUsers()">
-          &lt;
-        </button>
-      </div>
-      <div class="grow-column">
-        <h6>Selected</h6>
-        <mat-card class="column-height">
-          <mat-selection-list>
-            <mat-list-option
-              *ngFor="let user of DbSelectedUsers"
-              (selectedChange)="user.IsSelected = $event"
-              [selected]="user.IsSelected"
-            >
-              {{ user.Value.email }}
-            </mat-list-option>
-            <mat-list-option
-              class="selected-change-items"
-              *ngFor="let user of UserToAddChange"
-              (selectedChange)="user.IsSelected = $event"
-              [selected]="user.IsSelected"
-            >
-              {{ user.Value.email }}
-            </mat-list-option>
-          </mat-selection-list>
-        </mat-card>
-      </div>
+    <div>
+      <app-team-selector
+        #teamSelector
+        (TeamSelected)="TeamSelected($event)"
+      ></app-team-selector>
     </div>
+    <mat-card [ngClass]="{ 'card-disabled': !DbTeam }">
+      <mat-card-content>
+        <div class="flex-row">
+          <div class="grow-column">
+            <h6>Not Selected</h6>
+            <mat-card class="column-height">
+              <mat-selection-list>
+                <mat-list-option
+                  *ngFor="let user of DbNotSelectedUsers"
+                  (selectedChange)="user.IsSelected = $event"
+                  [selected]="user.IsSelected"
+                >
+                  {{ user.Value.email }}
+                </mat-list-option>
+                <mat-list-option
+                  class="selected-change-items"
+                  *ngFor="let user of UserToRemoveChange"
+                  (selectedChange)="user.IsSelected = $event"
+                  [selected]="user.IsSelected"
+                >
+                  {{ user.Value.email }}
+                </mat-list-option>
+              </mat-selection-list>
+            </mat-card>
+          </div>
+          <div class="center-shrink-column">
+            <button mat-stroked-button color="primary" (click)="SelectUsers()">
+              &gt;
+            </button>
+            <button
+              mat-stroked-button
+              color="primary"
+              (click)="UnselectUsers()"
+            >
+              &lt;
+            </button>
+          </div>
+          <div class="grow-column">
+            <h6>Selected</h6>
+            <mat-card class="column-height">
+              <mat-selection-list>
+                <mat-list-option
+                  *ngFor="let user of DbSelectedUsers"
+                  (selectedChange)="user.IsSelected = $event"
+                  [selected]="user.IsSelected"
+                >
+                  {{ user.Value.email }}
+                </mat-list-option>
+                <mat-list-option
+                  class="selected-change-items"
+                  *ngFor="let user of UserToAddChange"
+                  (selectedChange)="user.IsSelected = $event"
+                  [selected]="user.IsSelected"
+                >
+                  {{ user.Value.email }}
+                </mat-list-option>
+              </mat-selection-list>
+            </mat-card>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
     <button
       [disabled]="
         UserToAddChange.length === 0 && UserToRemoveChange.length === 0

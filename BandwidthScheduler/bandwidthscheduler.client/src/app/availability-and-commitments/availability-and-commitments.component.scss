@@ -1,0 +1,7 @@
+.tab-vert-spacer {
+  margin-bottom: 2rem;
+}
+
+::ng-deep .mat-mdc-tab-body-content::-webkit-scrollbar {
+  display: none;
+}

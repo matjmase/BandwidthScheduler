@@ -1,14 +1,10 @@
 <app-spinner-card
-  [stretch]="SpinnerCardStretch"
-  [spinnerActive]="waitingOnSubmit"
+  [stretch]="GetHorizontalStretch()"
+  [spinnerActive]="WaitingOnSubmit"
 >
   <mat-card-title>Add Team</mat-card-title>
   <mat-card-content>
-    <form
-      #addTeamForm="ngForm"
-      (ngSubmit)="AddTeamSubmit(addTeamForm)"
-      [inert]="waitingOnSubmit"
-    >
+    <form #addTeamForm="ngForm" (ngSubmit)="AddTeamSubmit(addTeamForm)">
       <mat-form-field class="form-item">
         <mat-label>Team Name</mat-label>
         <mat-icon matPrefix>people</mat-icon>
@@ -17,13 +13,21 @@
           id="teamName"
           ngModel
           type="text"
+          required
           matInput
           required
           placeholder="Ex. Angry Ginger Cats"
         />
       </mat-form-field>
 
-      <button type="submit" mat-raised-button color="primary">Add!</button>
+      <button
+        type="submit"
+        [disabled]="!addTeamForm.valid"
+        mat-stroked-button
+        color="primary"
+      >
+        Add
+      </button>
     </form>
   </mat-card-content></app-spinner-card
 >

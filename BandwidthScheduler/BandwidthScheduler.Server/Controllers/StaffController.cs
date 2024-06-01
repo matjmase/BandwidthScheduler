@@ -45,9 +45,9 @@ namespace BandwidthScheduler.Server.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> Post([FromBody] SimpleTextRequest text)
+        public async Task<IActionResult> Post([FromBody] SimplePrimitiveRequest<string> text)
         {
-            var teamName = text.Text;
+            var teamName = text.Payload;
 
             if (teamName == null)
             {
@@ -65,6 +65,28 @@ namespace BandwidthScheduler.Server.Controllers
             {
                 Name = teamName,
             });
+
+            await _db.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpPut]
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> Put([FromBody] Team team)
+        {
+            _db.Teams.Update(team);
+
+            await _db.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpDelete]
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> Delete([FromHeader(Name = "teamId")] int teamId)
+        {
+            _db.Teams.Remove(_db.Teams.First(e => e.Id == teamId));
 
             await _db.SaveChangesAsync();
 

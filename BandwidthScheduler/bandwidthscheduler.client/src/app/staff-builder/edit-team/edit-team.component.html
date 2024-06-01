@@ -1,0 +1,35 @@
+<app-spinner-card
+  [stretch]="GetHorizontalStretch()"
+  [spinnerActive]="WaitingOnSubmit"
+>
+  <mat-card-title> Edit Team </mat-card-title>
+  <mat-card-content>
+    <div>
+      <app-team-selector
+        #teamSelector
+        (TeamSelected)="TeamSelected($event)"
+      ></app-team-selector>
+    </div>
+    <mat-card [ngClass]="{ 'card-disabled': !DbTeam }">
+      <mat-card-title> Edit Team Form </mat-card-title>
+      <mat-card-content>
+        <mat-form-field class="form-item">
+          <mat-label>Team Name</mat-label>
+          <mat-icon matPrefix>people</mat-icon>
+          <input
+            [(ngModel)]="TeamName"
+            [formControl]="NameEditControl"
+            type="text"
+            matInput
+            required
+            placeholder="Ex. Angry Ginger Cats"
+          />
+        </mat-form-field>
+
+        <button mat-stroked-button color="primary" (click)="EditTeamSubmit()">
+          Edit
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </mat-card-content>
+</app-spinner-card>

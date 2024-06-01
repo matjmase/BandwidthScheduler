@@ -1,19 +1,18 @@
-import { Component, EventEmitter, Output } from '@angular/core';
-import { NgForm } from '@angular/forms';
+import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
+import { ITeam } from '../../models/db/ITeam';
+import { TeamSelectorComponent } from '../../commonControls/team-selector/team-selector.component';
 import { BackendConnectService } from '../../services/backend-connect.service';
 import { StandardSnackbarService } from '../../services/standard-snackbar.service';
 import { HttpErrorResponse } from '@angular/common/http';
-import { SpinnerCardContentsComponent } from '../SpinnerCardContentsComponent';
+import { TeamSelectorContainerComponent } from '../TeamSelectorContainerComponent';
 import { SpinnerCardHorizontalStretch } from '../../commonControls/spinner-card/spinner-card.component';
 
 @Component({
-  selector: 'app-add-team',
-  templateUrl: './add-team.component.html',
-  styleUrl: './add-team.component.scss',
+  selector: 'app-remove-team',
+  templateUrl: './remove-team.component.html',
+  styleUrl: './remove-team.component.scss',
 })
-export class AddTeamComponent extends SpinnerCardContentsComponent {
-  @Output() TeamAdded: EventEmitter<void> = new EventEmitter<void>();
-
+export class RemoveTeamComponent extends TeamSelectorContainerComponent {
   constructor(
     private messageSnackBar: StandardSnackbarService,
     private backend: BackendConnectService
@@ -21,23 +20,22 @@ export class AddTeamComponent extends SpinnerCardContentsComponent {
     super();
   }
 
+  protected override ResetTeamSelector(): void {}
   public override GetHorizontalStretch(): SpinnerCardHorizontalStretch {
     return SpinnerCardHorizontalStretch.Grow;
   }
 
-  public AddTeamSubmit(form: NgForm): void {
-    console.log(form);
+  protected OnTeamSelected(team: ITeam): void {
     this.WaitingOnSubmit = true;
-    const teamName = form.value.teamName;
 
-    this.backend.Staff.PostTeam(teamName).subscribe({
+    this.backend.Staff.DeleteTeam(team.id).subscribe({
       complete: () => {
         this.messageSnackBar.OpenConfirmationMessage(
-          'Team - ' + teamName + ' added successfully'
+          'Team - ' + team.name + ' deleted successfully'
         );
-        this.TeamAdded.emit();
-        form.resetForm();
+        this.TeamsUpdated.emit();
         this.WaitingOnSubmit = false;
+        this.TeamCollectionUpdated();
       },
       error: (errorResp: HttpErrorResponse) => {
         this.messageSnackBar.OpenErrorMessage(errorResp.error);

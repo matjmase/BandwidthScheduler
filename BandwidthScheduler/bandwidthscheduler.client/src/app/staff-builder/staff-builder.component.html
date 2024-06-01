@@ -2,15 +2,22 @@
 
 <mat-divider></mat-divider>
 
-<app-add-team (TeamAdded)="TeamAdded()"></app-add-team>
+<app-add-team (TeamAdded)="TeamsUpdated()"></app-add-team>
 
 <mat-divider></mat-divider>
 
-<app-team-selector
-  #teamSelector
-  (TeamSelected)="TeamSelected($event)"
-></app-team-selector>
+<app-edit-team
+  (TeamsUpdated)="TeamsUpdated()"
+  #editMemberControl
+></app-edit-team>
 
 <mat-divider></mat-divider>
 
-<app-add-remove-team-user [DbTeam]="dbTeamSelected"></app-add-remove-team-user>
+<app-remove-team
+  (TeamsUpdated)="TeamsUpdated()"
+  #removeMemberControl
+></app-remove-team>
+
+<mat-divider></mat-divider>
+
+<app-add-remove-team-user #addRemoveMemberControl></app-add-remove-team-user>

@@ -1,17 +1,18 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { BackendConnectService } from '../services/backend-connect.service';
-import { AvailabilityEntry } from '../models/db/AvailabilityEntry';
-import { CommitmentEntry } from '../models/db/CommitmentEntry';
-import { StandardSnackbarService } from '../services/standard-snackbar.service';
 import { HttpErrorResponse } from '@angular/common/http';
-import { DateTimeRangeSelectorModel } from '../commonControls/date-time-range-selector/date-time-range-selector-model';
+import { Component } from '@angular/core';
+import { DateTimeRangeSelectorModel } from '../../commonControls/date-time-range-selector/date-time-range-selector-model';
+import { AvailabilityEntry } from '../../models/db/AvailabilityEntry';
+import { CommitmentEntry } from '../../models/db/CommitmentEntry';
+import { BackendConnectService } from '../../services/backend-connect.service';
+import { StandardSnackbarService } from '../../services/standard-snackbar.service';
+import { IAvailabilityEntryModel } from './IAvailabilityEntryModel';
 
 @Component({
-  selector: 'app-availability-builder',
-  templateUrl: './availability-builder.component.html',
-  styleUrl: './availability-builder.component.scss',
+  selector: 'app-availability',
+  templateUrl: './availability.component.html',
+  styleUrl: './availability.component.scss',
 })
-export class AvailabilityBuilderComponent {
+export class AvailabilityComponent {
   private timeSpan = 30;
 
   public loading: boolean = false;
@@ -19,10 +20,11 @@ export class AvailabilityBuilderComponent {
   public TimeRange: DateTimeRangeSelectorModel | undefined;
 
   public SelectedTimeRange(range: DateTimeRangeSelectorModel): void {
-    console.log(range);
     this.TimeRange = range;
+
     this.currentAvailableModels = [];
     this.loading = true;
+
     this.backEnd.Availability.GetAllTimes(this.TimeRange).subscribe({
       complete: () => (this.loading = false),
       next: (value) => {
@@ -72,8 +74,7 @@ export class AvailabilityBuilderComponent {
 
   constructor(
     private backEnd: BackendConnectService,
-    private snackBar: StandardSnackbarService,
-    private ref: ChangeDetectorRef
+    private snackBar: StandardSnackbarService
   ) {}
 
   public GetDateTransformed(date: Date, increment: number): Date {
@@ -102,11 +103,4 @@ export class AvailabilityBuilderComponent {
       error: () => {},
     });
   }
-}
-
-export interface IAvailabilityEntryModel {
-  startTime: Date;
-  endTime: Date;
-  isSelected: boolean;
-  isDisabled: boolean;
 }

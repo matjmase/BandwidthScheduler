@@ -1,5 +1,5 @@
 @use "@angular/material" as mat;
-@import "../../styles.scss";
+@import "../../../styles.scss";
 
 $primary: mat.get-color-from-palette(
   map-get($bandwidthscheduler-client-theme, primary),

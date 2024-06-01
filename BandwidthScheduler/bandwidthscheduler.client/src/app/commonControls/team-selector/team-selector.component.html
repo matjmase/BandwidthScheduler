@@ -1,32 +1,36 @@
-<mat-card>
-  <mat-card-title>Select Team</mat-card-title>
+<app-spinner-card [spinnerActive]="SpinnerActive" [stretch]="HorizontalStretch">
+  <mat-card-title>{{ CardTitle }}</mat-card-title>
   <mat-card-content>
-    <form>
-      <mat-form-field class="form-item">
-        <mat-label>Team</mat-label>
-        <input
-          type="text"
-          placeholder="Pick one"
-          aria-label="Team"
-          required
-          matInput
-          [formControl]="autoCompleteControl"
-          [matAutocomplete]="auto"
-        />
-        <mat-autocomplete
-          requireSelection
-          autoActiveFirstOption
-          #auto="matAutocomplete"
-        >
-          <mat-option *ngFor="let option of filteredOptions" [value]="option">{{
-            option
-          }}</mat-option>
-        </mat-autocomplete>
-      </mat-form-field>
+    <mat-form-field class="form-item">
+      <mat-label>Team</mat-label>
+      <mat-icon matPrefix>people</mat-icon>
+      <input
+        type="text"
+        placeholder="Pick one"
+        aria-label="Team"
+        required
+        matInput
+        [formControl]="autoCompleteControl"
+        [matAutocomplete]="auto"
+      />
+      <mat-autocomplete
+        requireSelection
+        autoActiveFirstOption
+        #auto="matAutocomplete"
+      >
+        <mat-option *ngFor="let option of filteredOptions" [value]="option">{{
+          option
+        }}</mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
 
-      <button (click)="SelectTeamSubmit()" mat-stroked-button color="primary">
-        Select!
-      </button>
-    </form>
-  </mat-card-content></mat-card
->
+    <button
+      [disabled]="!autoCompleteControl.valid"
+      (click)="SelectTeamSubmit()"
+      mat-stroked-button
+      color="primary"
+    >
+      {{ SelectionTerm }}
+    </button>
+  </mat-card-content>
+</app-spinner-card>

@@ -37,3 +37,11 @@
   pointer-events: none;
   opacity: 0.5;
 }
+
+mat-card-content > * {
+  margin-bottom: 2rem;
+}
+
+mat-card-content > *:first-child {
+  margin-top: 2rem;
+}

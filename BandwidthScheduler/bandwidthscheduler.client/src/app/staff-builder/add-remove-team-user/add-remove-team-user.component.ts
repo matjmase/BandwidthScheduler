@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ViewChild } from '@angular/core';
 import { IAllAndTeamUsers } from '../../models/IAllAndTeamUsers';
 import { IUser } from '../../models/db/IUser';
 import { SelectableElementWrapper } from './selectable-element-wrapper';
@@ -7,33 +7,15 @@ import { BackendConnectService } from '../../services/backend-connect.service';
 import { SpinnerCardHorizontalStretch } from '../../commonControls/spinner-card/spinner-card.component';
 import { StandardSnackbarService } from '../../services/standard-snackbar.service';
 import { HttpErrorResponse } from '@angular/common/http';
+import { TeamSelectorComponent } from '../../commonControls/team-selector/team-selector.component';
+import { TeamSelectorContainerComponent } from '../TeamSelectorContainerComponent';
 
 @Component({
   selector: 'app-add-remove-team-user',
   templateUrl: './add-remove-team-user.component.html',
   styleUrl: './add-remove-team-user.component.scss',
 })
-export class AddRemoveTeamUserComponent {
-  @Input() set DbTeam(dbTeam: ITeam | undefined) {
-    if (!dbTeam) return;
-    this._dbTeam = dbTeam;
-    this.backend.Staff.GetAllAndTeamUsers(dbTeam.id).subscribe({
-      next: (val) => {
-        this._dbTeamUser = val;
-        this.Reset();
-      },
-    });
-  }
-  get DbTeam(): ITeam | undefined {
-    return this._dbTeam;
-  }
-
-  public SpinnerCardStretch: SpinnerCardHorizontalStretch =
-    SpinnerCardHorizontalStretch.Grow;
-
-  public WaitingOnSubmit: boolean = false;
-
-  private _dbTeam: ITeam | undefined;
+export class AddRemoveTeamUserComponent extends TeamSelectorContainerComponent {
   private _dbTeamUser: IAllAndTeamUsers | undefined;
 
   public DbSelectedUsers: SelectableElementWrapper<IUser>[] = [];
@@ -45,7 +27,28 @@ export class AddRemoveTeamUserComponent {
   constructor(
     private backend: BackendConnectService,
     private snackBar: StandardSnackbarService
-  ) {}
+  ) {
+    super();
+  }
+
+  protected override ResetTeamSelector(): void {
+    this.DbSelectedUsers = [];
+    this.DbNotSelectedUsers = [];
+    this.UserToAddChange = [];
+    this.UserToRemoveChange = [];
+  }
+
+  protected override OnTeamSelected(team: ITeam): void {
+    this.backend.Staff.GetAllAndTeamUsers(team.id).subscribe({
+      next: (val) => {
+        this._dbTeamUser = val;
+        this.Reset();
+      },
+    });
+  }
+  public override GetHorizontalStretch(): SpinnerCardHorizontalStretch {
+    return SpinnerCardHorizontalStretch.Grow;
+  }
 
   public UnselectUsers(): void {
     const toRemove = this.DbSelectedUsers.filter((e) => e.IsSelected);
@@ -105,7 +108,7 @@ export class AddRemoveTeamUserComponent {
     this.WaitingOnSubmit = true;
 
     this.backend.Staff.PostTeamChange({
-      currentTeam: this._dbTeam!,
+      currentTeam: this.DbTeam!,
       toAdd: this.UserToAddChange.map((e) => e.Value),
       toRemove: this.UserToRemoveChange.map((e) => e.Value),
     }).subscribe({
@@ -113,8 +116,8 @@ export class AddRemoveTeamUserComponent {
         this.snackBar.OpenConfirmationMessage(
           'Successfully Added/Removed Team Members'
         );
-        if (this._dbTeam) {
-          this.backend.Staff.GetAllAndTeamUsers(this._dbTeam.id).subscribe({
+        if (this.DbTeam) {
+          this.backend.Staff.GetAllAndTeamUsers(this.DbTeam.id).subscribe({
             next: (val) => {
               this._dbTeamUser = val;
               this.Reset();

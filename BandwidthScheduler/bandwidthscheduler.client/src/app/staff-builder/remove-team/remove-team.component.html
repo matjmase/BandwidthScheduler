@@ -1,0 +1,7 @@
+<app-team-selector
+  #teamSelector
+  (TeamSelected)="TeamSelected($event)"
+  [SelectionTerm]="'Remove'"
+  [CardTitle]="'Remove Team'"
+  [SpinnerActive]="WaitingOnSubmit"
+></app-team-selector>

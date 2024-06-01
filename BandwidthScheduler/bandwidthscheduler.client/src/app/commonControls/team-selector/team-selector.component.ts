@@ -1,7 +1,15 @@
-import { Component, EventEmitter, OnInit, Output, output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  output,
+} from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { ITeam } from '../../models/db/ITeam';
 import { BackendConnectService } from '../../services/backend-connect.service';
+import { SpinnerCardHorizontalStretch } from '../spinner-card/spinner-card.component';
 
 @Component({
   selector: 'app-team-selector',
@@ -14,6 +22,12 @@ export class TeamSelectorComponent implements OnInit {
   filteredOptions: string[] = [];
 
   @Output() TeamSelected: EventEmitter<ITeam> = new EventEmitter<ITeam>();
+
+  @Input() CardTitle: string = 'Select Team';
+  @Input() SelectionTerm: string = 'Select';
+  @Input() SpinnerActive: boolean = false;
+  @Input() HorizontalStretch: SpinnerCardHorizontalStretch =
+    SpinnerCardHorizontalStretch.Grow;
 
   constructor(private backend: BackendConnectService) {}
 
@@ -30,6 +44,10 @@ export class TeamSelectorComponent implements OnInit {
     const team = this.options[teamName];
 
     this.TeamSelected.emit(team);
+  }
+
+  public ResetForm(): void {
+    this.autoCompleteControl.reset();
   }
 
   private Filter(value: string): void {

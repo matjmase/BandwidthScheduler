@@ -1,99 +1,85 @@
-<div class="card-container">
-  <mat-card class="form-card">
-    <mat-spinner
-      class="centered-spinner"
-      [ngStyle]="{
-        'display': !roles || waitingOnSubmit ? 'block' : 'none',
-      }"
-    ></mat-spinner>
-    <div
-      [ngClass]="{
-        'form-card-disabled': !roles || waitingOnSubmit
-      }"
+<app-spinner-card [spinnerActive]="waitingOnSubmit">
+  <mat-card-title>Register</mat-card-title>
+  <mat-card-content>
+    <form
+      #registerForm="ngForm"
+      (ngSubmit)="Submit(registerForm)"
+      appRegisterFormValidator
+      [inert]="!roles || waitingOnSubmit"
     >
-      <mat-card-title>Login</mat-card-title>
-      <mat-card-content>
-        <form
-          #registerForm="ngForm"
-          (ngSubmit)="Submit(registerForm)"
-          appRegisterFormValidator
-          [inert]="!roles || waitingOnSubmit"
-        >
-          <mat-form-field class="form-item">
-            <mat-label>Email</mat-label>
-            <mat-icon matPrefix>email</mat-icon>
-            <input
-              name="email"
-              id="email"
-              ngModel
-              type="email"
-              matInput
-              required
-              placeholder="Ex. pat@example.com"
-            />
-          </mat-form-field>
+      <mat-form-field class="form-item">
+        <mat-label>Email</mat-label>
+        <mat-icon matPrefix>email</mat-icon>
+        <input
+          name="email"
+          id="email"
+          ngModel
+          type="email"
+          matInput
+          required
+          placeholder="Ex. pat@example.com"
+        />
+      </mat-form-field>
 
-          <mat-form-field class="form-item">
-            <mat-label>Password</mat-label>
-            <mat-icon matPrefix>password</mat-icon>
-            <input
-              name="password"
-              id="password"
-              ngModel
-              type="password"
-              matInput
-              required
-            />
-          </mat-form-field>
+      <mat-form-field class="form-item">
+        <mat-label>Password</mat-label>
+        <mat-icon matPrefix>password</mat-icon>
+        <input
+          name="password"
+          id="password"
+          ngModel
+          type="password"
+          matInput
+          required
+        />
+      </mat-form-field>
 
-          <mat-form-field class="form-item">
-            <mat-label>Verify</mat-label>
-            <mat-icon matPrefix>password</mat-icon>
-            <input
-              name="verify"
-              id="verify"
-              ngModel
-              required
-              type="password"
-              matInput
-            />
-          </mat-form-field>
+      <mat-form-field class="form-item">
+        <mat-label>Verify</mat-label>
+        <mat-icon matPrefix>password</mat-icon>
+        <input
+          name="verify"
+          id="verify"
+          ngModel
+          required
+          type="password"
+          matInput
+        />
+      </mat-form-field>
 
-          <section class="role-items" ngModelGroup="roles">
-            <div *ngFor="let item of roles">
-              <mat-checkbox [name]="item" [value]="item" [id]="item" ngModel>{{
-                item
-              }}</mat-checkbox>
-            </div>
-          </section>
+      <section class="role-items" ngModelGroup="roles">
+        <div *ngFor="let item of roles">
+          <mat-checkbox [name]="item" [value]="item" [id]="item" ngModel>{{
+            item
+          }}</mat-checkbox>
+        </div>
+      </section>
 
-          <button
-            type="submit"
-            class="wide-button"
-            mat-raised-button
-            color="primary"
-          >
-            Submit!
-          </button>
+      <button
+        type="submit"
+        class="wide-button"
+        mat-raised-button
+        color="primary"
+      >
+        Submit!
+      </button>
 
-          <mat-error
-            *ngIf="registerForm.submitted && registerForm.errors?.['EmptyEmail']"
-            >Email is <strong>required</strong></mat-error
-          >
-          <mat-error
-            *ngIf="registerForm.submitted && registerForm.errors?.['EmptyPassword']"
-            >Password is <strong>empty</strong></mat-error
-          >
-          <mat-error
-            *ngIf="registerForm.submitted && registerForm.errors?.['MismatchPasswords']"
-            >Passwords do not <strong>match</strong></mat-error
-          >
-          <mat-error
-            *ngIf="registerForm.submitted && registerForm.errors?.['NoRoleSelected']"
-            >Role is <strong>not selected</strong></mat-error
-          >
-        </form>
-      </mat-card-content>
-    </div></mat-card
-  >
-</div>
+      <mat-error
+        *ngIf="registerForm.submitted && registerForm.errors?.['EmptyEmail']"
+        >Email is <strong>required</strong></mat-error
+      >
+      <mat-error
+        *ngIf="registerForm.submitted && registerForm.errors?.['EmptyPassword']"
+        >Password is <strong>empty</strong></mat-error
+      >
+      <mat-error
+        *ngIf="registerForm.submitted && registerForm.errors?.['MismatchPasswords']"
+        >Passwords do not <strong>match</strong></mat-error
+      >
+      <mat-error
+        *ngIf="registerForm.submitted && registerForm.errors?.['NoRoleSelected']"
+        >Role is <strong>not selected</strong></mat-error
+      >
+    </form>
+  </mat-card-content>
+</app-spinner-card>

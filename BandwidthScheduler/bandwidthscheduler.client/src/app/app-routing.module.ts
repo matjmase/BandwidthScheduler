@@ -4,11 +4,11 @@ import { HomeComponent } from './home/home.component';
 import { LoginComponent } from './login/login.component';
 import { RegisterComponent } from './register/register.component';
 import { StaffBuilderComponent } from './staff-builder/staff-builder.component';
-import { AvailabilityBuilderComponent } from './availability-builder/availability-builder.component';
 import { ScheduleHistoryComponent } from './schedule-history/schedule-history.component';
 import { authorizeGuard } from './guards/authorize.guard';
 import { authenticateGuard } from './guards/authenticate.guard';
 import { ScheduleComponent } from './schedule/schedule.component';
+import { AvailabilityAndCommitmentsComponent } from './availability-and-commitments/availability-and-commitments.component';
 
 const routes: Routes = [
   {
@@ -43,10 +43,10 @@ const routes: Routes = [
         component: StaffBuilderComponent,
       },
       {
-        path: 'availability',
+        path: 'availabilitycommitment',
         canActivate: [authorizeGuard],
         data: { roles: ['User'] },
-        component: AvailabilityBuilderComponent,
+        component: AvailabilityAndCommitmentsComponent,
       },
       {
         path: 'schedule',
