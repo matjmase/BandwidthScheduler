@@ -58,7 +58,7 @@ namespace BandwidthScheduler.Server.Controllers.Schedule
             var toAddCommitment = new HashSet<Commitment>();
             var toRemoveCommitment = new HashSet<Commitment>();
 
-            var encapsulatedMiddle = new HashSet<Availability>();
+            var fragmentAvailability = new HashSet<Availability>();
 
             foreach (var userId in userIds)
             {
@@ -76,10 +76,30 @@ namespace BandwidthScheduler.Server.Controllers.Schedule
 
                 if (encapsulate != null)
                 {
-                    encapsulatedMiddle.Add(new Availability()
+                    fragmentAvailability.Add(new Availability()
                     {
                         UserId = userId,
                         StartTime = start,
+                        EndTime = end,
+                    });
+                }
+
+                if (left != null)
+                {
+                    fragmentAvailability.Add(new Availability()
+                    {
+                        UserId = userId,
+                        StartTime = start,
+                        EndTime = left.EndTime,
+                    });
+                }
+
+                if (right != null)
+                {
+                    fragmentAvailability.Add(new Availability()
+                    {
+                        UserId = userId,
+                        StartTime = right.StartTime,
                         EndTime = end,
                     });
                 }
@@ -96,7 +116,7 @@ namespace BandwidthScheduler.Server.Controllers.Schedule
             // streak them together
 
             var intersectingAvailabilitiesDictionary = intersectingAvailabilities.ToDictionaryAggregate(e => e.UserId);
-            var capturedAsAvailability = captured.Select(e => new Availability() { UserId = e.UserId, StartTime = e.StartTime, EndTime = e.EndTime }).ToDictionaryAggregate(e => e.UserId);
+            var capturedAsAvailability = captured.Select(e => new Availability() { UserId = e.UserId, StartTime = e.StartTime, EndTime = e.EndTime }).Union(fragmentAvailability).ToDictionaryAggregate(e => e.UserId);
 
             var toAddAvail = new HashSet<Availability>();
             var toRemoveAvail = new HashSet<Availability>();
@@ -125,7 +145,6 @@ namespace BandwidthScheduler.Server.Controllers.Schedule
 
             await _db.Commitments.AddRangeAsync(toAddCommitment);
             await _db.Availabilities.AddRangeAsync(toAddAvail);
-            await _db.Availabilities.AddRangeAsync(encapsulatedMiddle);
 
             await _db.SaveChangesAsync();
 
