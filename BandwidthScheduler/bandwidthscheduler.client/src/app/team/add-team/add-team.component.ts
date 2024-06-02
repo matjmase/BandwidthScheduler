@@ -30,7 +30,7 @@ export class AddTeamComponent extends SpinnerCardContentsComponent {
     this.WaitingOnSubmit = true;
     const teamName = form.value.teamName;
 
-    this.backend.Staff.PostTeam(teamName).subscribe({
+    this.backend.Team.PostTeam(teamName).subscribe({
       complete: () => {
         this.messageSnackBar.OpenConfirmationMessage(
           'Team - ' + teamName + ' added successfully'

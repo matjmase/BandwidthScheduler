@@ -39,7 +39,7 @@ export class AddRemoveTeamUserComponent extends TeamSelectorContainerComponent {
   }
 
   protected override OnTeamSelected(team: ITeam): void {
-    this.backend.Staff.GetAllAndTeamUsers(team.id).subscribe({
+    this.backend.Team.GetAllAndTeamUsers(team.id).subscribe({
       next: (val) => {
         this._dbTeamUser = val;
         this.Reset();
@@ -107,7 +107,7 @@ export class AddRemoveTeamUserComponent extends TeamSelectorContainerComponent {
   public Submit(): void {
     this.WaitingOnSubmit = true;
 
-    this.backend.Staff.PostTeamChange({
+    this.backend.Team.PostTeamChange({
       currentTeam: this.DbTeam!,
       toAdd: this.UserToAddChange.map((e) => e.Value),
       toRemove: this.UserToRemoveChange.map((e) => e.Value),
@@ -117,7 +117,7 @@ export class AddRemoveTeamUserComponent extends TeamSelectorContainerComponent {
           'Successfully Added/Removed Team Members'
         );
         if (this.DbTeam) {
-          this.backend.Staff.GetAllAndTeamUsers(this.DbTeam.id).subscribe({
+          this.backend.Team.GetAllAndTeamUsers(this.DbTeam.id).subscribe({
             next: (val) => {
               this._dbTeamUser = val;
               this.Reset();

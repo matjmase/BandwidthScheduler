@@ -7,11 +7,11 @@ import { IStaffTeamChangeRequest } from '../../models/IStaffTeamChangeRequest';
 import { JsonCustom } from '../../models/JsonCustom';
 import { SimplePrimitiveRequest } from '../../models/SimplePrimitiveRequest';
 
-export class StaffController {
+export class TeamController {
   private _baseUrl: string;
 
   constructor(private http: HttpClient, baseApiUrl: string) {
-    this._baseUrl = baseApiUrl + 'staff/';
+    this._baseUrl = baseApiUrl + 'team/';
   }
 
   public GetAllTeams(): Observable<ITeam[]> {

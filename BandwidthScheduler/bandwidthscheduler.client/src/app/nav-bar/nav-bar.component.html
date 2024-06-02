@@ -52,24 +52,24 @@
 <mat-expansion-panel class="primary-expansion-color" [expanded]="isExpanded">
   <mat-toolbar color="primary" *appAuthorize="'Administrator'">
     <button
-      id="staff-builder-button"
+      id="team-button"
       mat-icon-button
-      (click)="SubMenuNavigationClick('/staff')"
+      (click)="SubMenuNavigationClick('/team')"
     >
       <mat-icon>people</mat-icon>
     </button>
-    <label for="staff-builder-button"> Staff </label>
+    <label for="team-button"> Team </label>
   </mat-toolbar>
 
   <mat-toolbar color="primary" *appAuthorize="'User'">
     <button
-      id="availability-builder-button"
+      id="itinerary-button"
       mat-icon-button
-      (click)="SubMenuNavigationClick('/availabilitycommitment')"
+      (click)="SubMenuNavigationClick('/itinerary')"
     >
       <mat-icon>access_time_filled</mat-icon>
     </button>
-    <label for="availability-builder-button"> Itinerary </label>
+    <label for="itinerary-button"> Itinerary </label>
   </mat-toolbar>
 
   <mat-toolbar color="primary" *appAuthorize="'Scheduler'">

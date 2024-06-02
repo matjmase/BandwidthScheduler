@@ -30,7 +30,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { authInterceptor } from './interceptors/auth.interceptor';
 import { AuthenticateDirective } from './directives/authenticate.directive';
-import { StaffBuilderComponent } from './staff-builder/staff-builder.component';
 import { ScheduleHistoryComponent } from './schedule-history/schedule-history.component';
 import { AuthorizeDirective } from './directives/authorize.directive';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -42,8 +41,6 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { TeamSelectorComponent } from './commonControls/team-selector/team-selector.component';
-import { AddRemoveTeamUserComponent } from './staff-builder/add-remove-team-user/add-remove-team-user.component';
-import { AddTeamComponent } from './staff-builder/add-team/add-team.component';
 import { ColorElementDirective } from './directives/color-element.directive';
 import { SpinnerCardComponent } from './commonControls/spinner-card/spinner-card.component';
 import { TimePickerSnapComponent } from './commonControls/time-picker-snap/time-picker-snap.component';
@@ -58,11 +55,14 @@ import { GridRenderingProposalComponent } from './schedule/schedule-publisher/gr
 import { SchedulePublisherComponent } from './schedule/schedule-publisher/schedule-publisher.component';
 import { ScheduleRecallComponent } from './schedule/schedule-recall/schedule-recall.component';
 import { MessageModalBoxComponent } from './commonControls/message-modal-box/message-modal-box.component';
-import { AvailabilityAndCommitmentsComponent } from './availability-and-commitments/availability-and-commitments.component';
-import { AvailabilityComponent } from './availability-and-commitments/availability/availability.component';
-import { CommitmentComponent } from './availability-and-commitments/commitment/commitment.component';
-import { RemoveTeamComponent } from './staff-builder/remove-team/remove-team.component';
-import { EditTeamComponent } from './staff-builder/edit-team/edit-team.component';
+import { ItineraryComponent } from './itinerary/itinerary.component';
+import { TeamComponent } from './team/team.component';
+import { AvailabilityComponent } from './itinerary/availability/availability.component';
+import { CommitmentComponent } from './itinerary/commitment/commitment.component';
+import { AddRemoveTeamUserComponent } from './team/add-remove-team-user/add-remove-team-user.component';
+import { AddTeamComponent } from './team/add-team/add-team.component';
+import { EditTeamComponent } from './team/edit-team/edit-team.component';
+import { RemoveTeamComponent } from './team/remove-team/remove-team.component';
 
 @NgModule({
   declarations: [
@@ -74,7 +74,6 @@ import { EditTeamComponent } from './staff-builder/edit-team/edit-team.component
     RegisterFormValidatorDirective,
     LoginFormValidatorDirective,
     AuthenticateDirective,
-    StaffBuilderComponent,
     SchedulePublisherComponent,
     ScheduleHistoryComponent,
     AuthorizeDirective,
@@ -94,11 +93,12 @@ import { EditTeamComponent } from './staff-builder/edit-team/edit-team.component
     GridLegendReadOnlyComponent,
     ScheduleComponent,
     MessageModalBoxComponent,
-    AvailabilityAndCommitmentsComponent,
     AvailabilityComponent,
     CommitmentComponent,
     RemoveTeamComponent,
     EditTeamComponent,
+    ItineraryComponent,
+    TeamComponent,
   ],
   imports: [
     BrowserModule,

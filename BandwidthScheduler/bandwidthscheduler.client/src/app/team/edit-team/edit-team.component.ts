@@ -46,7 +46,7 @@ export class EditTeamComponent extends TeamSelectorContainerComponent {
       commitments: undefined,
     };
 
-    this.backend.Staff.UpdateTeam(updatedTeam).subscribe({
+    this.backend.Team.UpdateTeam(updatedTeam).subscribe({
       complete: () => {
         this.messageSnackBar.OpenConfirmationMessage(
           'Team - ' + updatedTeam.name + ' edited successfully'

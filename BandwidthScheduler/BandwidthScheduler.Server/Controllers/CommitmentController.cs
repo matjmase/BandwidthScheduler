@@ -1,5 +1,4 @@
 ﻿using BandwidthScheduler.Server.Common.Extensions;
-using BandwidthScheduler.Server.Common.Role;
 using BandwidthScheduler.Server.Common.Static;
 using BandwidthScheduler.Server.DbModels;
 using Microsoft.AspNetCore.Authorization;
@@ -8,24 +7,24 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
-namespace BandwidthScheduler.Server.Controllers.Schedule
+namespace BandwidthScheduler.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ScheduleController : ControllerBase
+    public class CommitmentController : ControllerBase
     {
         private IConfiguration _config;
         private BandwidthSchedulerContext _db;
 
-        public ScheduleController(BandwidthSchedulerContext db, IConfiguration config)
+        public CommitmentController(BandwidthSchedulerContext db, IConfiguration config)
         {
             _db = db;
             _config = config;
         }
 
-        [HttpGet("commitments")]
+        [HttpGet("Team")]
         [Authorize(Roles = "Scheduler")]
-        public async Task<IActionResult> GetCommitments([FromHeader(Name = "start")] string startString, [FromHeader(Name = "end")] string endString, [FromHeader(Name = "teamId")] int teamId)
+        public async Task<IActionResult> GetTeamCommitments([FromHeader(Name = "start")] string startString, [FromHeader(Name = "end")] string endString, [FromHeader(Name = "teamId")] int teamId)
         {
             DateTime start = new DateTime();
             DateTime end = new DateTime();
@@ -51,24 +50,8 @@ namespace BandwidthScheduler.Server.Controllers.Schedule
             return Ok(commitments);
         }
 
-
         #region Queries
 
-        [NonAction]
-        public static async Task<Availability[]> GetAvailabilities(int teamId, DateTime windowStart, DateTime windowEnd, BandwidthSchedulerContext db)
-        {
-            var totalApplicable = await db.UserRoles
-                .Where(e => e.RoleId == (int)AuthenticationRole.User) // role filtering
-                .Include(e => e.User).ThenInclude(e => e.UserTeams) // userteam include
-                .Where(e => e.User.UserTeams.Any(e => e.TeamId == teamId)) // userteam filter
-                .Include(e => e.User).ThenInclude(e => e.Availabilities).ThenInclude(e => e.User) // availabilities include with user
-                .Select(e => e.User).SelectMany(e => e.Availabilities) // availabilies nav
-                .Where(e => !(e.EndTime <= windowStart || e.StartTime >= windowEnd)).OrderBy(e => e.StartTime).ToArrayAsync(); // availability filter
-
-            totalApplicable.Foreach(e => e.ExplicitlyMarkDateTimesAsUtc());
-
-            return totalApplicable;
-        }
 
         [NonAction]
         public static IQueryable<Commitment> GetTimeWindowCommitmentEncapsulated(DbSet<Commitment> db, IEnumerable<int> userIds, int teamId, DateTime start, DateTime end)
@@ -153,6 +136,7 @@ namespace BandwidthScheduler.Server.Controllers.Schedule
                 e.EndTime <= start || e.StartTime >= end
             );
         }
+
         #endregion
     }
 }

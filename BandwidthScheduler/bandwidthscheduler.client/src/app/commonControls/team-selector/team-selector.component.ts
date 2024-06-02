@@ -57,7 +57,7 @@ export class TeamSelectorComponent implements OnInit {
   }
 
   public GetTeamsAutoComplete(): void {
-    this.backend.Staff.GetAllTeams().subscribe({
+    this.backend.Team.GetAllTeams().subscribe({
       next: (teams) => {
         this.options = {};
         teams.forEach((element) => {

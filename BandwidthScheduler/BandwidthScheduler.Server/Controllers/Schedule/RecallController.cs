@@ -41,15 +41,15 @@ namespace BandwidthScheduler.Server.Controllers.Schedule
 
             // get all intersection
 
-            var intersection = await ScheduleController.GetCommitmentAnyIntersection(_db.Commitments, recallRequest.TeamId, start, end).Include(e => e.User).ToArrayAsync();
+            var intersection = await CommitmentController.GetCommitmentAnyIntersection(_db.Commitments, recallRequest.TeamId, start, end).Include(e => e.User).ToArrayAsync();
 
             // stitching
 
             var userIds = intersection.Select(e => e.UserId).Distinct();
             
-            var encapsulateArr = await ScheduleController.GetTimeWindowCommitmentEncapsulated(_db.Commitments, userIds, teamId, start, end).ToArrayAsync();
-            var leftArr = await ScheduleController.GetCommitmentLeftNeighbor(_db.Commitments, userIds, teamId, start, end).ToArrayAsync();
-            var rightArr = await ScheduleController.GetCommitmentRightNeighbor(_db.Commitments, userIds, teamId, start, end).ToArrayAsync();
+            var encapsulateArr = await CommitmentController.GetTimeWindowCommitmentEncapsulated(_db.Commitments, userIds, teamId, start, end).ToArrayAsync();
+            var leftArr = await CommitmentController.GetCommitmentLeftNeighbor(_db.Commitments, userIds, teamId, start, end).ToArrayAsync();
+            var rightArr = await CommitmentController.GetCommitmentRightNeighbor(_db.Commitments, userIds, teamId, start, end).ToArrayAsync();
 
             var encapsulateDict = encapsulateArr.ToDictionary(e => e.UserId);
             var leftDict = leftArr.ToDictionary(e => e.UserId);
@@ -107,11 +107,11 @@ namespace BandwidthScheduler.Server.Controllers.Schedule
 
             // captured transition
 
-            var captured = await ScheduleController.GetCommitmentTimeWindowsCaptured(_db.Commitments, userIds, teamId, start, end).ToArrayAsync();
+            var captured = await CommitmentController.GetCommitmentTimeWindowsCaptured(_db.Commitments, userIds, teamId, start, end).ToArrayAsync();
 
             // get current availabilities
 
-            var intersectingAvailabilities = await ScheduleController.GetAvailabilities(teamId, start, end, _db);
+            var intersectingAvailabilities = await AvailabilityController.GetTeamAvailabilities(teamId, start, end, _db);
 
             // streak them together
 

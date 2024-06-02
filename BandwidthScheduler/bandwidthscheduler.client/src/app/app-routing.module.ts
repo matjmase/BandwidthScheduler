@@ -3,12 +3,12 @@ import { RouterModule, Routes } from '@angular/router';
 import { HomeComponent } from './home/home.component';
 import { LoginComponent } from './login/login.component';
 import { RegisterComponent } from './register/register.component';
-import { StaffBuilderComponent } from './staff-builder/staff-builder.component';
 import { ScheduleHistoryComponent } from './schedule-history/schedule-history.component';
 import { authorizeGuard } from './guards/authorize.guard';
 import { authenticateGuard } from './guards/authenticate.guard';
 import { ScheduleComponent } from './schedule/schedule.component';
-import { AvailabilityAndCommitmentsComponent } from './availability-and-commitments/availability-and-commitments.component';
+import { ItineraryComponent } from './itinerary/itinerary.component';
+import { TeamComponent } from './team/team.component';
 
 const routes: Routes = [
   {
@@ -37,16 +37,16 @@ const routes: Routes = [
       },
 
       {
-        path: 'staff',
+        path: 'team',
         canActivate: [authorizeGuard],
         data: { roles: ['Administrator'] },
-        component: StaffBuilderComponent,
+        component: TeamComponent,
       },
       {
-        path: 'availabilitycommitment',
+        path: 'itinerary',
         canActivate: [authorizeGuard],
         data: { roles: ['User'] },
-        component: AvailabilityAndCommitmentsComponent,
+        component: ItineraryComponent,
       },
       {
         path: 'schedule',

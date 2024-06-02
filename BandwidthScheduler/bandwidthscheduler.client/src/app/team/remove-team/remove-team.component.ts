@@ -28,7 +28,7 @@ export class RemoveTeamComponent extends TeamSelectorContainerComponent {
   protected OnTeamSelected(team: ITeam): void {
     this.WaitingOnSubmit = true;
 
-    this.backend.Staff.DeleteTeam(team.id).subscribe({
+    this.backend.Team.DeleteTeam(team.id).subscribe({
       complete: () => {
         this.messageSnackBar.OpenConfirmationMessage(
           'Team - ' + team.name + ' deleted successfully'

@@ -82,7 +82,7 @@ export class SchedulePublisherComponent {
       this.SelectedTeam &&
       this.SelectedTimeRange
     ) {
-      this.backend.Schedule.GetCommitments(
+      this.backend.Commitment.GetCommitments(
         this.SelectedTimeRange,
         this.SelectedTeam.id
       ).subscribe({

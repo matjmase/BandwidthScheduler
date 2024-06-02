@@ -49,7 +49,7 @@ namespace BandwidthScheduler.Server.Controllers.Schedule
 
             // Scope availabilities to proposal window
 
-            var totalAvailabilities = await ScheduleController.GetAvailabilities(proposalRequest.SelectedTeam.Id, windowStart, windowEnd, _db);
+            var totalAvailabilities = await AvailabilityController.GetTeamAvailabilities(proposalRequest.SelectedTeam.Id, windowStart, windowEnd, _db);
             var userAvailabilityArrays = totalAvailabilities.ToDictionaryAggregate(e => e.UserId);
 
             var output = ScheduleGeneration.ScopeStreakToWindow(userAvailabilityArrays, proposalRequest.Proposal);
@@ -78,7 +78,7 @@ namespace BandwidthScheduler.Server.Controllers.Schedule
 
             // DB Checking.
 
-            var totalApplicable = await ScheduleController.GetAvailabilities(submitRequest.ProposalRequest.SelectedTeam.Id, windowStart, windowEnd, _db);
+            var totalApplicable = await AvailabilityController.GetTeamAvailabilities(submitRequest.ProposalRequest.SelectedTeam.Id, windowStart, windowEnd, _db);
 
             if (totalApplicable == null)
             {
@@ -97,7 +97,7 @@ namespace BandwidthScheduler.Server.Controllers.Schedule
             var teamId = submitRequest.ProposalRequest.SelectedTeam.Id;
 
             var proposalDict = totalProposals.ToDictionaryAggregate(e => e.UserId);
-            var capturedTws = await ScheduleController.GetCommitmentTimeWindowsCaptured(_db.Commitments, proposalDict.Keys, teamId, windowStart, windowEnd).ToArrayAsync();
+            var capturedTws = await CommitmentController.GetCommitmentTimeWindowsCaptured(_db.Commitments, proposalDict.Keys, teamId, windowStart, windowEnd).ToArrayAsync();
             var capturedTwsDict = capturedTws.ToDictionaryAggregate(e => e.UserId);
 
             foreach (var kv in proposalDict)
@@ -125,9 +125,9 @@ namespace BandwidthScheduler.Server.Controllers.Schedule
 
             // stitch sides
 
-            var encapsulateArr = await ScheduleController.GetTimeWindowCommitmentEncapsulated(_db.Commitments, proposalDict.Keys, teamId, windowStart, windowEnd).ToArrayAsync();
-            var leftArr = await ScheduleController.GetCommitmentLeftNeighbor(_db.Commitments, proposalDict.Keys, teamId, windowStart, windowEnd).ToArrayAsync();
-            var rightArr = await ScheduleController.GetCommitmentRightNeighbor(_db.Commitments, proposalDict.Keys, teamId, windowStart, windowEnd).ToArrayAsync();
+            var encapsulateArr = await CommitmentController.GetTimeWindowCommitmentEncapsulated(_db.Commitments, proposalDict.Keys, teamId, windowStart, windowEnd).ToArrayAsync();
+            var leftArr = await CommitmentController.GetCommitmentLeftNeighbor(_db.Commitments, proposalDict.Keys, teamId, windowStart, windowEnd).ToArrayAsync();
+            var rightArr = await CommitmentController.GetCommitmentRightNeighbor(_db.Commitments, proposalDict.Keys, teamId, windowStart, windowEnd).ToArrayAsync();
 
             var encapsulateDict = encapsulateArr.ToDictionary(e => e.UserId);
             var leftDict = leftArr.ToDictionary(e => e.UserId);
@@ -169,5 +169,7 @@ namespace BandwidthScheduler.Server.Controllers.Schedule
             return Ok();
         }
 
+
+        
     }
 }

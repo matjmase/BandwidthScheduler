@@ -1,6 +1,5 @@
 ﻿using BandwidthScheduler.Server.Common.Static;
 using BandwidthScheduler.Server.DbModels;
-using BandwidthScheduler.Server.Models;
 using BandwidthScheduler.Server.Models.Shared.Request;
 using BandwidthScheduler.Server.Models.StaffController.Request;
 using Microsoft.AspNetCore.Authorization;
@@ -13,12 +12,12 @@ namespace BandwidthScheduler.Server.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class StaffController : ControllerBase
+    public class TeamController : ControllerBase
     {
         private IConfiguration _config;
         private BandwidthSchedulerContext _db;
 
-        public StaffController(BandwidthSchedulerContext db, IConfiguration config)
+        public TeamController(BandwidthSchedulerContext db, IConfiguration config)
         {
             _db = db;
             _config = config;
@@ -100,7 +99,7 @@ namespace BandwidthScheduler.Server.Controllers
             var teamUsers = _db.UserTeams.Include(e => e.User).Where(e => e.TeamId == id).Select(e => e.User);
             var otherUsers = _db.Users.Where(e => !teamUsers.Contains(e));
 
-            return Ok(new 
+            return Ok(new
             {
                 TeamUsers = await teamUsers.ToArrayAsync(),
                 AllOtherUsers = await otherUsers.ToArrayAsync()
@@ -110,7 +109,7 @@ namespace BandwidthScheduler.Server.Controllers
         [HttpPost("teamchange")]
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> PostTeamChange([FromBody] StaffTeamChangeRequest change)
-        { 
+        {
             await _db.UserTeams.AddRangeAsync(change.ToAdd.Select(e => new UserTeam() { TeamId = change.CurrentTeam.Id, UserId = e.Id }));
             _db.RemoveRange(change.ToRemove.Select(e => new UserTeam() { TeamId = change.CurrentTeam.Id, UserId = e.Id }));
 

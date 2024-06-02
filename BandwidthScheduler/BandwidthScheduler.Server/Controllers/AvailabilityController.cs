@@ -1,4 +1,5 @@
 ﻿using BandwidthScheduler.Server.Common.Extensions;
+using BandwidthScheduler.Server.Common.Role;
 using BandwidthScheduler.Server.Common.Static;
 using BandwidthScheduler.Server.Controllers.Common;
 using BandwidthScheduler.Server.Controllers.Validation;
@@ -139,6 +140,22 @@ namespace BandwidthScheduler.Server.Controllers
         }
 
         #region Queries
+
+        [NonAction]
+        public static async Task<Availability[]> GetTeamAvailabilities(int teamId, DateTime windowStart, DateTime windowEnd, BandwidthSchedulerContext db)
+        {
+            var totalApplicable = await db.UserRoles
+                .Where(e => e.RoleId == (int)AuthenticationRole.User) // role filtering
+                .Include(e => e.User).ThenInclude(e => e.UserTeams) // userteam include
+                .Where(e => e.User.UserTeams.Any(e => e.TeamId == teamId)) // userteam filter
+                .Include(e => e.User).ThenInclude(e => e.Availabilities).ThenInclude(e => e.User) // availabilities include with user
+                .Select(e => e.User).SelectMany(e => e.Availabilities) // availabilies nav
+                .Where(e => !(e.EndTime <= windowStart || e.StartTime >= windowEnd)).OrderBy(e => e.StartTime).ToArrayAsync(); // availability filter
+
+            totalApplicable.Foreach(e => e.ExplicitlyMarkDateTimesAsUtc());
+
+            return totalApplicable;
+        }
 
         [NonAction]
         private static IQueryable<Availability> GetAnyAvailabilityOrAdjacentIntersection(DbSet<Availability> db, int id, DateTime start, DateTime end)

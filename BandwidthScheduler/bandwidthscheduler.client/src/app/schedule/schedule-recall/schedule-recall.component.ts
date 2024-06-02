@@ -59,7 +59,7 @@ export class ScheduleRecallComponent {
     if (this.SelectedTeam && this.SelectedTimeRange) {
       const range = this.SelectedTimeRange!;
 
-      this.backend.Schedule.GetCommitments(
+      this.backend.Commitment.GetCommitments(
         this.SelectedTimeRange,
         this.SelectedTeam.id
       ).subscribe({

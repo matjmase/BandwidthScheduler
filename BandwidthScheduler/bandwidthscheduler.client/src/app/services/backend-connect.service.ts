@@ -2,10 +2,10 @@ import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { LoginController } from './controllers/LoginController';
 import { AvailabilityController } from './controllers/AvailabilityController';
-import { StaffController } from './controllers/StaffController';
 import { PublishController } from './controllers/schedule/PublishController';
-import { ScheduleController } from './controllers/schedule/ScheduleController';
 import { RecallController } from './controllers/schedule/RecallController';
+import { TeamController } from './controllers/TeamController';
+import { CommitmentController } from './controllers/CommitmentController';
 
 @Injectable({
   providedIn: 'root',
@@ -13,10 +13,10 @@ import { RecallController } from './controllers/schedule/RecallController';
 export class BackendConnectService {
   private _login: LoginController;
   private _availability: AvailabilityController;
-  private _schedule: ScheduleController;
+  private _commitment: CommitmentController;
   private _schedulePublish: PublishController;
   private _scheduleRecall: RecallController;
-  private _staff: StaffController;
+  private _team: TeamController;
 
   get Login(): LoginController {
     return this._login;
@@ -26,8 +26,8 @@ export class BackendConnectService {
     return this._availability;
   }
 
-  get Schedule(): ScheduleController {
-    return this._schedule;
+  get Commitment(): CommitmentController {
+    return this._commitment;
   }
 
   get SchedulePublish(): PublishController {
@@ -38,17 +38,17 @@ export class BackendConnectService {
     return this._scheduleRecall;
   }
 
-  get Staff(): StaffController {
-    return this._staff;
+  get Team(): TeamController {
+    return this._team;
   }
 
   constructor(http: HttpClient) {
     const baseApiUrl = 'api/';
     this._login = new LoginController(http, baseApiUrl);
     this._availability = new AvailabilityController(http, baseApiUrl);
-    this._schedule = new ScheduleController(http, baseApiUrl);
+    this._commitment = new CommitmentController(http, baseApiUrl);
     this._schedulePublish = new PublishController(http, baseApiUrl);
     this._scheduleRecall = new RecallController(http, baseApiUrl);
-    this._staff = new StaffController(http, baseApiUrl);
+    this._team = new TeamController(http, baseApiUrl);
   }
 }

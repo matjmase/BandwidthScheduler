@@ -1,16 +1,14 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { ITeam } from '../models/db/ITeam';
-import { TeamSelectorComponent } from '../commonControls/team-selector/team-selector.component';
+import { Component, ViewChild } from '@angular/core';
 import { AddRemoveTeamUserComponent } from './add-remove-team-user/add-remove-team-user.component';
 import { EditTeamComponent } from './edit-team/edit-team.component';
 import { RemoveTeamComponent } from './remove-team/remove-team.component';
 
 @Component({
-  selector: 'app-staff-builder',
-  templateUrl: './staff-builder.component.html',
-  styleUrl: './staff-builder.component.scss',
+  selector: 'app-team',
+  templateUrl: './team.component.html',
+  styleUrl: './team.component.scss',
 })
-export class StaffBuilderComponent {
+export class TeamComponent {
   @ViewChild('editMemberControl')
   EditControl!: EditTeamComponent;
   @ViewChild('removeMemberControl')
