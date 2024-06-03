@@ -1,12 +1,12 @@
 <h3>Choose Availability</h3>
 <mat-divider></mat-divider>
-<div style="text-align: center">
+<div>
   <app-date-time-range-selector
     (DateTimeRangeSelected)="SelectedTimeRange($event)"
   ></app-date-time-range-selector>
 
-  <div *ngIf="loading">
-    <mat-spinner style="margin-right: auto; margin-left: auto"></mat-spinner>
+  <div *ngIf="loading" class="spinner-vert-spacer">
+    <mat-spinner class="spinner-horiz-center"></mat-spinner>
   </div>
 
   <div *ngIf="currentAvailableModels.length !== 0">

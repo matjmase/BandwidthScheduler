@@ -24,3 +24,12 @@ $accent: mat.get-color-from-palette(
   background-color: $primary !important;
   color: white !important;
 }
+
+.spinner-vert-spacer {
+  margin-top: 2rem;
+}
+
+.spinner-horiz-center {
+  margin-right: auto;
+  margin-left: auto;
+}

@@ -1,1 +1,11 @@
-<p>commitment works!</p>
+<h3>View Commitments</h3>
+<mat-divider></mat-divider>
+<div>
+  <app-date-range-selector
+    (DateRangeSelected)="SelectedDateRange($event)"
+  ></app-date-range-selector>
+
+  <div *ngIf="loading" class="spinner-vert-spacer">
+    <mat-spinner class="spinner-horiz-center"></mat-spinner>
+  </div>
+</div>

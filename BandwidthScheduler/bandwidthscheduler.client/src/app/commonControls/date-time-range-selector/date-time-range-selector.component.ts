@@ -53,10 +53,8 @@ export class DateTimeRangeSelectorComponent implements ControlValueAccessor {
 
   public IsDisabled: boolean = false;
 
-  // Function to call when the rating changes.
   private onChange = (model: DateTimeRangeSelectorModel | undefined) => {};
 
-  // Function to call when the input is touched (when a star is clicked).
   onTouched = () => {};
 
   writeValue(obj: DateTimeRangeSelectorModel): void {

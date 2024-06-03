@@ -25,7 +25,7 @@ export class DateTimeRangeSelectorValidatorDirective implements Validator {
     const fg = <FormGroup>control;
     const controls = fg.controls;
 
-    let errors: { [key: string]: any } = {};
+    const errors: { [key: string]: any } = {};
 
     const date: Date = controls['datePicker']?.value;
     const start: TimePickerModel = controls['startTimePicker']?.value;

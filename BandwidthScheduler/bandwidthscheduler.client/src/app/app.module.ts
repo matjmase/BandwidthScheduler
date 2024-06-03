@@ -63,6 +63,8 @@ import { AddRemoveTeamUserComponent } from './team/add-remove-team-user/add-remo
 import { AddTeamComponent } from './team/add-team/add-team.component';
 import { EditTeamComponent } from './team/edit-team/edit-team.component';
 import { RemoveTeamComponent } from './team/remove-team/remove-team.component';
+import { DateRangeSelectorComponent } from './commonControls/date-range-selector/date-range-selector.component';
+import { DateRangeSelectorValidatorDirective } from './validators/date-range-selector-validator.directive';
 
 @NgModule({
   declarations: [
@@ -99,6 +101,8 @@ import { RemoveTeamComponent } from './team/remove-team/remove-team.component';
     EditTeamComponent,
     ItineraryComponent,
     TeamComponent,
+    DateRangeSelectorComponent,
+    DateRangeSelectorValidatorDirective,
   ],
   imports: [
     BrowserModule,
