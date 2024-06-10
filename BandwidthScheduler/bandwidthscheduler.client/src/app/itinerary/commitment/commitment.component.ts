@@ -45,6 +45,8 @@ export class CommitmentComponent {
   public Summaries: ICommitmentSummary[] = [];
   public ExpandedElement: ICommitmentSummary | null = null;
 
+  public TotalDuration: TimeSpan | undefined;
+
   constructor(private backend: BackendConnectService) {}
 
   public SelectedDateRange(range: DateTimeRangeSelectorModel): void {
@@ -76,6 +78,7 @@ export class CommitmentComponent {
 
     this.Summaries = [];
 
+    this.TotalDuration = new TimeSpan(0);
     for (let [k, v] of Object.entries(uniqueTeams)) {
       let timeSpanTotal = new TimeSpan(0);
 
@@ -84,6 +87,8 @@ export class CommitmentComponent {
           this.GetTimeSpanDiff(entry.startTime, entry.endTime)
         );
       }
+
+      this.TotalDuration = this.TotalDuration?.add(timeSpanTotal);
 
       this.Summaries.push({
         team: k,
