@@ -59,12 +59,12 @@ export class ScheduleRecallComponent {
     if (this.SelectedTeam && this.SelectedTimeRange) {
       const range = this.SelectedTimeRange!;
 
-      this.backend.Commitment.GetCommitments(
+      this.backend.Commitment.GetTeamCommitments(
         this.SelectedTimeRange,
         this.SelectedTeam.id
       ).subscribe({
         next: (commitments) => {
-          const commitEntries = commitments.map((c) => new CommitmentEntry(c));
+          const commitEntries = commitments;
 
           for (let entry of commitEntries) {
             if (this.colorDict[entry.user.email] === undefined) {

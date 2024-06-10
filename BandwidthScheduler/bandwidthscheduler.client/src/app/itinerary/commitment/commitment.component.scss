@@ -1,0 +1,45 @@
+@use "@angular/material" as mat;
+@import "../../../styles.scss";
+
+$accent: mat.get-color-from-palette(
+  map-get($bandwidthscheduler-client-theme, accent),
+  default
+);
+
+table {
+  width: 100%;
+}
+
+tr.table-detail-row {
+  height: 0;
+}
+
+tr.table-element-row:not(.table-expanded-row):hover {
+  background: whitesmoke;
+}
+
+tr.table-element-row:not(.table-expanded-row):active {
+  background: #efefef;
+}
+
+.table-element-row td {
+  border-bottom-width: 0;
+}
+
+.table-element-detail {
+  overflow: hidden;
+  display: flex;
+}
+
+.spinner-vert-spacer {
+  margin-top: 2rem;
+}
+
+.spinner-horiz-center {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.commitment-time-accent {
+  color: $accent;
+}

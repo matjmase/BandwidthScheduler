@@ -22,6 +22,34 @@ namespace BandwidthScheduler.Server.Controllers
             _config = config;
         }
 
+        [HttpGet("User")]
+        [Authorize(Roles = "Scheduler")]
+        public async Task<IActionResult> GetUserCommitments([FromHeader(Name = "start")] string startString, [FromHeader(Name = "end")] string endString)
+        {
+            DateTime start = new DateTime();
+            DateTime end = new DateTime();
+            try
+            {
+                start = DateTime.Parse(startString);
+                end = DateTime.Parse(endString);
+            }
+            catch
+            {
+                return BadRequest("start and or end could not be parsed");
+            }
+
+            start = start.ToUniversalTime();
+            end = end.ToUniversalTime();
+            var current = DbModelFunction.GetCurrentUser(HttpContext);
+
+            var commitments = await GetAllTeamCommitmentAnyIntersection(_db.Commitments, start, end).Include(e => e.User).ToArrayAsync();
+
+            commitments.Foreach(e => e.ExplicitlyMarkDateTimesAsUtc());
+            commitments.Foreach(e => e.NullifyRedundancy());
+
+            return Ok(commitments);
+        }
+
         [HttpGet("Team")]
         [Authorize(Roles = "Scheduler")]
         public async Task<IActionResult> GetTeamCommitments([FromHeader(Name = "start")] string startString, [FromHeader(Name = "end")] string endString, [FromHeader(Name = "teamId")] int teamId)
@@ -132,6 +160,23 @@ namespace BandwidthScheduler.Server.Controllers
         {
             return e =>
             e.TeamId == teamId &&
+            !(
+                e.EndTime <= start || e.StartTime >= end
+            );
+        }
+
+
+
+        [NonAction]
+        public static IQueryable<Commitment> GetAllTeamCommitmentAnyIntersection(IQueryable<Commitment> db, DateTime start, DateTime end)
+        {
+            return db.Include(e => e.User).Include(e => e.Team).Where(AllTeamCommitmentIntersectionExpression(start, end));
+        }
+
+        [NonAction]
+        public static Expression<Func<Commitment, bool>> AllTeamCommitmentIntersectionExpression(DateTime start, DateTime end)
+        {
+            return e =>
             !(
                 e.EndTime <= start || e.StartTime >= end
             );

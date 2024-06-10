@@ -57,7 +57,7 @@ namespace BandwidthScheduler.Server.Common.Extensions
                     }
                     else
                     {
-                        var value = p.GetValue(obj, null);
+                        var value = p.GetValue(obj);
 
                         if (value != null)
                         {
@@ -79,14 +79,14 @@ namespace BandwidthScheduler.Server.Common.Extensions
                         {
                             if (p.PropertyType.IsArray)
                             {
-                                foreach (var item in (Array)p.GetValue(obj, null))
+                                foreach (var item in (Array)p.GetValue(obj))
                                 {
                                     NullifyRedundancyRecursive(item, seenTypes);
                                 }
                             }
                             else
                             {
-                                foreach (var item in (IEnumerable)p.GetValue(obj, null))
+                                foreach (var item in (IEnumerable)p.GetValue(obj))
                                 {
                                     NullifyRedundancyRecursive(item, seenTypes);
                                 }

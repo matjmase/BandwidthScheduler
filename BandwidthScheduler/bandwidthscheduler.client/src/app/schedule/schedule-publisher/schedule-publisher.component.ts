@@ -82,14 +82,12 @@ export class SchedulePublisherComponent {
       this.SelectedTeam &&
       this.SelectedTimeRange
     ) {
-      this.backend.Commitment.GetCommitments(
+      this.backend.Commitment.GetTeamCommitments(
         this.SelectedTimeRange,
         this.SelectedTeam.id
       ).subscribe({
         next: (commitments) => {
-          this.commitmentEntries = commitments.map(
-            (c) => new CommitmentEntry(c)
-          );
+          this.commitmentEntries = commitments;
           this.CreateRenderingModel(
             this.SelectedMaxEmployees!,
             this.SelectedTimeRange!,
