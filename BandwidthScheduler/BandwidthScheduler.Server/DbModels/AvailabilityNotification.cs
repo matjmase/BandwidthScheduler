@@ -5,17 +5,19 @@ using System.Collections.Generic;
 
 namespace BandwidthScheduler.Server.DbModels;
 
-public partial class Availability
+public partial class AvailabilityNotification
 {
     public int Id { get; set; }
 
     public int UserId { get; set; }
 
-    public DateTime StartTime { get; set; }
+    public int AvailabilityId { get; set; }
 
-    public DateTime EndTime { get; set; }
+    public DateTime TimeStamp { get; set; }
 
-    public virtual ICollection<AvailabilityNotification> AvailabilityNotifications { get; set; } = new List<AvailabilityNotification>();
+    public bool Seen { get; set; }
+
+    public virtual Availability Availability { get; set; }
 
     public virtual User User { get; set; }
 }

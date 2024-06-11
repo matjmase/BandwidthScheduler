@@ -66,6 +66,9 @@ import { RemoveTeamComponent } from './team/remove-team/remove-team.component';
 import { DateRangeSelectorComponent } from './commonControls/date-range-selector/date-range-selector.component';
 import { DateRangeSelectorValidatorDirective } from './validators/date-range-selector-validator.directive';
 import { MatTableModule } from '@angular/material/table';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatRippleModule } from '@angular/material/core';
 
 @NgModule({
   declarations: [
@@ -131,6 +134,9 @@ import { MatTableModule } from '@angular/material/table';
     MatSnackBarModule,
     MatTabsModule,
     MatTableModule,
+    MatBadgeModule,
+    MatMenuModule,
+    MatRippleModule,
   ],
   providers: [
     provideAnimationsAsync(),

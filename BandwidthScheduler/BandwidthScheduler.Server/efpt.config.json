@@ -19,7 +19,15 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[AvailabilityNotification]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[Commitment]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CommitmentNotification]",
          "ObjectType": 0
       },
       {
@@ -45,6 +53,7 @@
    ],
    "UiHint": null,
    "UncountableWords": null,
+   "UseAsyncStoredProcedureCalls": true,
    "UseBoolPropertiesWithoutDefaultSql": false,
    "UseDatabaseNames": false,
    "UseDateOnlyTimeOnly": true,

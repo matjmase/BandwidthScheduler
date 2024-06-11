@@ -13,6 +13,12 @@
 
   <span class="spacer"></span>
 
+  <button mat-icon-button (click)="ToggleNotificationExpand()">
+    <mat-icon [matBadge]="wrappedNotifications?.length ?? 0"
+      >notifications</mat-icon
+    >
+  </button>
+
   <span *appAuthenticate="false" class="span-holder">
     <button
       id="login-button"
@@ -49,6 +55,52 @@
     <label for="logout-button"> Logout </label>
   </span>
 </mat-toolbar>
+
+<div style="position: relative">
+  <mat-expansion-panel
+    class="pop-up-expansion-panel"
+    [expanded]="notificationIsExpanded"
+  >
+    <div
+      style="background-color: whitesmoke; text-align: justify"
+      *ngFor="let notification of wrappedNotifications; let i = index"
+    >
+      <div
+        style="
+          display: flex;
+          flex-direction: row;
+          padding-top: 0.5 rem;
+          padding-bottom: 0.5rem;
+        "
+        matRipple
+      >
+        <button
+          mat-icon-button
+          id="{{ i }} noti"
+          style="margin-top: auto; margin-bottom: auto"
+        >
+          <mat-icon *ngIf="notification.notificationType === 'Availability'">
+            cancel_schedule_send
+          </mat-icon>
+          <mat-icon *ngIf="notification.notificationType === 'Commitment'">
+            schedule_send
+          </mat-icon>
+        </button>
+        <label for="{{ i }} noti"
+          >{{ notification.notificationType }} Added
+          <div>
+            From:
+            {{ notification.startTime | date : "M/d/yyyy, h:mm a" }}
+            <br />
+            To:
+            {{ notification.endTime | date : "M/d/yyyy, h:mm a" }}
+          </div></label
+        >
+      </div>
+    </div>
+  </mat-expansion-panel>
+</div>
+
 <mat-expansion-panel class="primary-expansion-color" [expanded]="isExpanded">
   <mat-toolbar color="primary" *appAuthorize="'Administrator'">
     <button

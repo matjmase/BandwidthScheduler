@@ -4,7 +4,6 @@ using BandwidthScheduler.Server.Common.Static;
 using BandwidthScheduler.Server.Controllers.Common;
 using BandwidthScheduler.Server.Controllers.Validation;
 using BandwidthScheduler.Server.DbModels;
-using BandwidthScheduler.Server.Models.Availability.RequestController;
 using BandwidthScheduler.Server.Models.AvailabilityController.Request;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -175,7 +174,7 @@ namespace BandwidthScheduler.Server.Controllers
         }
 
         [NonAction]
-        private static IQueryable<Availability> GetTimeWindowAvailabilityEncapsulated(DbSet<Availability> db, int id, DateTime start, DateTime end)
+        public static IQueryable<Availability> GetTimeWindowAvailabilityEncapsulated(DbSet<Availability> db, int id, DateTime start, DateTime end)
         {
             return db.Where(AvailabilityTimeWindowEncapsulatedExpression(id, start, end));
         }
@@ -191,7 +190,7 @@ namespace BandwidthScheduler.Server.Controllers
         }
 
         [NonAction]
-        private static IQueryable<Availability> GetAvailabilityRightNeighbor(DbSet<Availability> db, int id, DateTime start, DateTime end)
+        public static IQueryable<Availability> GetAvailabilityRightNeighbor(DbSet<Availability> db, int id, DateTime start, DateTime end)
         {
             return db.Where(AvailabilityRightNeighborExpression(id, start, end));
         }
@@ -207,7 +206,7 @@ namespace BandwidthScheduler.Server.Controllers
         }
 
         [NonAction]
-        private static IQueryable<Availability> GetAvailabilityLeftNeighbor(DbSet<Availability> db, int id, DateTime start, DateTime end)
+        public static IQueryable<Availability> GetAvailabilityLeftNeighbor(DbSet<Availability> db, int id, DateTime start, DateTime end)
         {
             return db.Where(AvailabilityLeftNeighborExpression(id, start, end));
         }

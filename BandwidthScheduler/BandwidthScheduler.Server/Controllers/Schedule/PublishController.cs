@@ -166,6 +166,16 @@ namespace BandwidthScheduler.Server.Controllers.Schedule
 
             await _db.SaveChangesAsync();
 
+            // Notifications
+
+            var availNotifications = NotificationController.AddAvailabilityNotification(addedAvailabilities);
+            var commitNotifications = NotificationController.AddCommitmentNotification(totalProposals);
+
+            await _db.AvailabilityNotifications.AddRangeAsync(availNotifications);
+            await _db.CommitmentNotifications.AddRangeAsync(commitNotifications);
+
+            await _db.SaveChangesAsync();
+
             return Ok();
         }
 

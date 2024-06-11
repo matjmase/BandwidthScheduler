@@ -13,6 +13,10 @@ public partial class User
 
     public virtual ICollection<Availability> Availabilities { get; set; } = new List<Availability>();
 
+    public virtual ICollection<AvailabilityNotification> AvailabilityNotifications { get; set; } = new List<AvailabilityNotification>();
+
+    public virtual ICollection<CommitmentNotification> CommitmentNotifications { get; set; } = new List<CommitmentNotification>();
+
     public virtual ICollection<Commitment> Commitments { get; set; } = new List<Commitment>();
 
     public virtual Password Password { get; set; }

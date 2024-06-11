@@ -10,6 +10,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Models\Availability\**" />
+    <Compile Remove="Models\Shared\Response\**" />
+    <Content Remove="Models\Availability\**" />
+    <Content Remove="Models\Shared\Response\**" />
+    <EmbeddedResource Remove="Models\Availability\**" />
+    <EmbeddedResource Remove="Models\Shared\Response\**" />
+    <None Remove="Models\Availability\**" />
+    <None Remove="Models\Shared\Response\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <_ContentIncludedByDefault Remove="efpt.config.json" />
   </ItemGroup>
 
@@ -36,8 +47,6 @@
 
   <ItemGroup>
     <Folder Include="DbModels\" />
-    <Folder Include="Models\Availability\Response\" />
-    <Folder Include="Models\Shared\Response\" />
   </ItemGroup>
 
 </Project>

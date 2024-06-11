@@ -15,7 +15,11 @@ public partial class BandwidthSchedulerContext : DbContext
 
     public virtual DbSet<Availability> Availabilities { get; set; }
 
+    public virtual DbSet<AvailabilityNotification> AvailabilityNotifications { get; set; }
+
     public virtual DbSet<Commitment> Commitments { get; set; }
+
+    public virtual DbSet<CommitmentNotification> CommitmentNotifications { get; set; }
 
     public virtual DbSet<Password> Passwords { get; set; }
 
@@ -38,8 +42,23 @@ public partial class BandwidthSchedulerContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.Availabilities)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Availability_User");
+        });
+
+        modelBuilder.Entity<AvailabilityNotification>(entity =>
+        {
+            entity.ToTable("AvailabilityNotification");
+
+            entity.Property(e => e.TimeStamp).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Availability).WithMany(p => p.AvailabilityNotifications)
+                .HasForeignKey(d => d.AvailabilityId)
+                .HasConstraintName("FK_AvailabilityNotification_Availability");
+
+            entity.HasOne(d => d.User).WithMany(p => p.AvailabilityNotifications)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AvailabilityNotification_User");
         });
 
         modelBuilder.Entity<Commitment>(entity =>
@@ -51,13 +70,27 @@ public partial class BandwidthSchedulerContext : DbContext
 
             entity.HasOne(d => d.Team).WithMany(p => p.Commitments)
                 .HasForeignKey(d => d.TeamId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Commitment_Team");
 
             entity.HasOne(d => d.User).WithMany(p => p.Commitments)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Commitment_User");
+        });
+
+        modelBuilder.Entity<CommitmentNotification>(entity =>
+        {
+            entity.ToTable("CommitmentNotification");
+
+            entity.Property(e => e.TimeStamp).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Commitment).WithMany(p => p.CommitmentNotifications)
+                .HasForeignKey(d => d.CommitmentId)
+                .HasConstraintName("FK_CommitmentNotification_Commitment");
+
+            entity.HasOne(d => d.User).WithMany(p => p.CommitmentNotifications)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CommitmentNotification_User");
         });
 
         modelBuilder.Entity<Password>(entity =>
@@ -78,7 +111,6 @@ public partial class BandwidthSchedulerContext : DbContext
 
             entity.HasOne(d => d.User).WithOne(p => p.Password)
                 .HasForeignKey<Password>(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Password_User");
         });
 
@@ -110,7 +142,6 @@ public partial class BandwidthSchedulerContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.UserRoles)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_UserRole_User");
         });
 
@@ -122,12 +153,10 @@ public partial class BandwidthSchedulerContext : DbContext
 
             entity.HasOne(d => d.Team).WithMany(p => p.UserTeams)
                 .HasForeignKey(d => d.TeamId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_UserTeam_Team");
 
             entity.HasOne(d => d.User).WithMany(p => p.UserTeams)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_UserTeam_User");
         });
 

@@ -11,6 +11,8 @@ public partial class Team
 
     public string Name { get; set; }
 
+    public bool Enabled { get; set; }
+
     public virtual ICollection<Commitment> Commitments { get; set; } = new List<Commitment>();
 
     public virtual ICollection<UserTeam> UserTeams { get; set; } = new List<UserTeam>();

@@ -6,6 +6,7 @@ import { PublishController } from './controllers/schedule/PublishController';
 import { RecallController } from './controllers/schedule/RecallController';
 import { TeamController } from './controllers/TeamController';
 import { CommitmentController } from './controllers/CommitmentController';
+import { NotificationController } from './controllers/NotificationController';
 
 @Injectable({
   providedIn: 'root',
@@ -17,6 +18,7 @@ export class BackendConnectService {
   private _schedulePublish: PublishController;
   private _scheduleRecall: RecallController;
   private _team: TeamController;
+  private _notification: NotificationController;
 
   get Login(): LoginController {
     return this._login;
@@ -42,6 +44,10 @@ export class BackendConnectService {
     return this._team;
   }
 
+  get Notification(): NotificationController {
+    return this._notification;
+  }
+
   constructor(http: HttpClient) {
     const baseApiUrl = 'api/';
     this._login = new LoginController(http, baseApiUrl);
@@ -50,5 +56,6 @@ export class BackendConnectService {
     this._schedulePublish = new PublishController(http, baseApiUrl);
     this._scheduleRecall = new RecallController(http, baseApiUrl);
     this._team = new TeamController(http, baseApiUrl);
+    this._notification = new NotificationController(http, baseApiUrl);
   }
 }

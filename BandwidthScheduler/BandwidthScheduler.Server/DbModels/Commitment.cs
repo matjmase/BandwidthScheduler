@@ -17,6 +17,8 @@ public partial class Commitment
 
     public DateTime EndTime { get; set; }
 
+    public virtual ICollection<CommitmentNotification> CommitmentNotifications { get; set; } = new List<CommitmentNotification>();
+
     public virtual Team Team { get; set; }
 
     public virtual User User { get; set; }
