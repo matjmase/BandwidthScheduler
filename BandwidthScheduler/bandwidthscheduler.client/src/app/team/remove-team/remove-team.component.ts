@@ -6,6 +6,7 @@ import { StandardSnackbarService } from '../../services/standard-snackbar.servic
 import { HttpErrorResponse } from '@angular/common/http';
 import { TeamSelectorContainerComponent } from '../TeamSelectorContainerComponent';
 import { SpinnerCardHorizontalStretch } from '../../commonControls/spinner-card/spinner-card.component';
+import { NotificationUpdateService } from '../../services/notification-update.service';
 
 @Component({
   selector: 'app-remove-team',
@@ -15,7 +16,8 @@ import { SpinnerCardHorizontalStretch } from '../../commonControls/spinner-card/
 export class RemoveTeamComponent extends TeamSelectorContainerComponent {
   constructor(
     private messageSnackBar: StandardSnackbarService,
-    private backend: BackendConnectService
+    private backend: BackendConnectService,
+    private notificationChange: NotificationUpdateService
   ) {
     super();
   }
@@ -36,6 +38,7 @@ export class RemoveTeamComponent extends TeamSelectorContainerComponent {
         this.TeamsUpdated.emit();
         this.WaitingOnSubmit = false;
         this.TeamCollectionUpdated();
+        this.notificationChange.OnChange.next();
       },
       error: (errorResp: HttpErrorResponse) => {
         this.messageSnackBar.OpenErrorMessage(errorResp.error);

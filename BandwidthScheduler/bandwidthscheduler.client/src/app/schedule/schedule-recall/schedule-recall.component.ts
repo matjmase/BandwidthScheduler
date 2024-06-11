@@ -15,6 +15,7 @@ import {
   IMessageModalBoxModel,
   MessageModalBoxType,
 } from '../../commonControls/message-modal-box/message-modal-box-model';
+import { NotificationUpdateService } from '../../services/notification-update.service';
 
 @Component({
   selector: 'app-schedule-recall',
@@ -42,7 +43,8 @@ export class ScheduleRecallComponent {
 
   constructor(
     private backend: BackendConnectService,
-    private snackBar: StandardSnackbarService
+    private snackBar: StandardSnackbarService,
+    private notificationChange: NotificationUpdateService
   ) {}
 
   public SubmitTeam(team: ITeam): void {
@@ -161,6 +163,7 @@ export class ScheduleRecallComponent {
         this.snackBar.OpenConfirmationMessage(
           'Successfully recalled schedule for time window'
         );
+        this.notificationChange.OnChange.next();
       },
       error: () => {
         this.snackBar.OpenErrorMessage(

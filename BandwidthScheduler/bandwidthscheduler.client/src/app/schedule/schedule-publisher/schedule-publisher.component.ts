@@ -23,6 +23,7 @@ import {
   IMessageModalBoxModel,
   MessageModalBoxType,
 } from '../../commonControls/message-modal-box/message-modal-box-model';
+import { NotificationUpdateService } from '../../services/notification-update.service';
 
 @Component({
   selector: 'app-schedule-publisher',
@@ -58,7 +59,8 @@ export class SchedulePublisherComponent {
 
   constructor(
     private backend: BackendConnectService,
-    private snackBar: StandardSnackbarService
+    private snackBar: StandardSnackbarService,
+    private notificationChange: NotificationUpdateService
   ) {}
 
   public SubmitTeam(team: ITeam) {
@@ -220,6 +222,8 @@ export class SchedulePublisherComponent {
         this.snackBar.OpenConfirmationMessage(
           'Successfully scheduled for the time period.'
         );
+
+        this.notificationChange.OnChange.next();
       },
       error: () =>
         this.snackBar.OpenErrorMessage('Error submitting the schdule.'),

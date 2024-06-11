@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { BackendConnectService } from '../services/backend-connect.service';
 import { INotificationResponse } from '../models/INotificationResponse';
@@ -7,27 +7,39 @@ import { AvailabilityNotificationEntry } from '../models/db/AvailabilityNotifica
 import { CommitmentNotificationEntry } from '../models/db/CommitmentNotificationEntry';
 import { AvailabilityNotificationWrapper } from './AvailabilityNotificationWrapper';
 import { CommitmentNotificationWrapper } from './CommitmentNotificationWrapper';
+import { NotificationUpdateService } from '../services/notification-update.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-nav-bar',
   templateUrl: './nav-bar.component.html',
   styleUrl: './nav-bar.component.scss',
 })
-export class NavBarComponent implements OnInit {
+export class NavBarComponent implements OnInit, OnDestroy {
+  private sub: Subscription | undefined;
+
   isExpanded: boolean = false;
   notificationIsExpanded: boolean = false;
 
   unseenNotifications: INotificationResponse | undefined;
   wrappedNotifications: INotificationWrapper[] | undefined;
 
-  constructor(private router: Router, private backend: BackendConnectService) {}
+  constructor(
+    private router: Router,
+    private backend: BackendConnectService,
+    private notificationChange: NotificationUpdateService
+  ) {}
 
   ngOnInit(): void {
     this.GetNotifications();
 
-    this.router.events.subscribe((val) => {
-      this.GetNotifications();
-    });
+    this.sub = this.notificationChange.OnChange.subscribe(() =>
+      this.GetNotifications()
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
   }
 
   private GetNotifications(): void {
