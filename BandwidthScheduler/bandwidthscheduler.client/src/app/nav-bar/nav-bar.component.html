@@ -13,7 +13,11 @@
 
   <span class="spacer"></span>
 
-  <button mat-icon-button (click)="ToggleNotificationExpand()">
+  <button
+    *appAuthorize="'User'"
+    mat-icon-button
+    (click)="ToggleNotificationExpand()"
+  >
     <mat-icon [matBadge]="wrappedNotifications?.length ?? 0"
       >notifications</mat-icon
     >

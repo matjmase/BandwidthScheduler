@@ -13,6 +13,7 @@ import { FormControl, NgForm } from '@angular/forms';
 import { BackendConnectService } from '../../services/backend-connect.service';
 import { StandardSnackbarService } from '../../services/standard-snackbar.service';
 import { TeamSelectorComponent } from '../../commonControls/team-selector/team-selector.component';
+import { TeamSelectorType } from '../../commonControls/team-selector/team-selector-type';
 
 @Component({
   selector: 'app-edit-team',
@@ -21,6 +22,7 @@ import { TeamSelectorComponent } from '../../commonControls/team-selector/team-s
 })
 export class EditTeamComponent extends TeamSelectorContainerComponent {
   public NameEditControl = new FormControl('');
+  public TeamType: TeamSelectorType = TeamSelectorType.All;
 
   public TeamName: string = '';
 

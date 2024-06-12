@@ -1,5 +1,6 @@
 <app-team-selector
   #teamSelector
+  [TeamType]="TeamType"
   (TeamSelected)="TeamSelected($event)"
   [SelectionTerm]="'Remove'"
   [CardTitle]="'Remove Team'"

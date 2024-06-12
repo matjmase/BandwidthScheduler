@@ -16,6 +16,7 @@ import {
   MessageModalBoxType,
 } from '../../commonControls/message-modal-box/message-modal-box-model';
 import { NotificationUpdateService } from '../../services/notification-update.service';
+import { TeamSelectorType } from '../../commonControls/team-selector/team-selector-type';
 
 @Component({
   selector: 'app-schedule-recall',
@@ -32,6 +33,8 @@ export class ScheduleRecallComponent {
   };
 
   private timeSpan = 30;
+
+  public TeamType: TeamSelectorType = TeamSelectorType.Active;
 
   public SelectedTeam: ITeam | undefined;
 

@@ -27,11 +27,20 @@ namespace BandwidthScheduler.Server.Controllers
             _config = config;
         }
 
-        [HttpGet]
-        [Authorize(Roles = "Administrator, Scheduler")]
+        [HttpGet("All")]
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> GetAllTeams()
         {
             var teams = await _db.Teams.ToArrayAsync();
+
+            return Ok(teams);
+        }
+
+        [HttpGet("Active")]
+        [Authorize(Roles = "Administrator, Scheduler")]
+        public async Task<IActionResult> GetActiveTeams()
+        {
+            var teams = await _db.Teams.Where(e => e.Enabled == true).ToArrayAsync();
 
             return Ok(teams);
         }

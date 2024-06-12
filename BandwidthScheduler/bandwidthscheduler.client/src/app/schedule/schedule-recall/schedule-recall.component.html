@@ -1,4 +1,7 @@
-<app-team-selector (TeamSelected)="SubmitTeam($event)"></app-team-selector>
+<app-team-selector
+  [TeamType]="TeamType"
+  (TeamSelected)="SubmitTeam($event)"
+></app-team-selector>
 
 <mat-divider *ngIf="SelectedTeam"></mat-divider>
 

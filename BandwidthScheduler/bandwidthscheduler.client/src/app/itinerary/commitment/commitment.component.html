@@ -99,7 +99,10 @@
                 <td mat-cell *matCellDef="let element">
                   {{
                     GetTimeSpanDiff(element.startTime, element.endTime)
-                      .totalHours
+                      .totalHours -
+                      (GetTimeSpanDiff(element.startTime, element.endTime)
+                        .totalHours %
+                        1)
                   }}
                   hours,
                   {{

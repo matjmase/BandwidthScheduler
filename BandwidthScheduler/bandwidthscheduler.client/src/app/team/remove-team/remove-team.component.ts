@@ -7,6 +7,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { TeamSelectorContainerComponent } from '../TeamSelectorContainerComponent';
 import { SpinnerCardHorizontalStretch } from '../../commonControls/spinner-card/spinner-card.component';
 import { NotificationUpdateService } from '../../services/notification-update.service';
+import { TeamSelectorType } from '../../commonControls/team-selector/team-selector-type';
 
 @Component({
   selector: 'app-remove-team',
@@ -14,6 +15,8 @@ import { NotificationUpdateService } from '../../services/notification-update.se
   styleUrl: './remove-team.component.scss',
 })
 export class RemoveTeamComponent extends TeamSelectorContainerComponent {
+  public TeamType: TeamSelectorType = TeamSelectorType.Active;
+
   constructor(
     private messageSnackBar: StandardSnackbarService,
     private backend: BackendConnectService,

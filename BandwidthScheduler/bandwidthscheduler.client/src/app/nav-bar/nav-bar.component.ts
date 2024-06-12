@@ -16,7 +16,8 @@ import { Subscription } from 'rxjs';
   styleUrl: './nav-bar.component.scss',
 })
 export class NavBarComponent implements OnInit, OnDestroy {
-  private sub: Subscription | undefined;
+  private roleSub: Subscription | undefined;
+  private serviceSub: Subscription | undefined;
 
   isExpanded: boolean = false;
   notificationIsExpanded: boolean = false;
@@ -31,15 +32,27 @@ export class NavBarComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.GetNotifications();
+    if (this.backend.Login.GetSavedResponse() !== undefined) {
+      this.GetNotifications();
+    }
 
-    this.sub = this.notificationChange.OnChange.subscribe(() =>
-      this.GetNotifications()
-    );
+    this.roleSub = this.backend.Login.RolesHaveChanged.subscribe(() => {
+      if (this.backend.Login.GetSavedResponse() !== undefined) {
+        if (this.serviceSub !== undefined) {
+          this.serviceSub = this.notificationChange.OnChange.subscribe(() =>
+            this.GetNotifications()
+          );
+        }
+      } else {
+        this.serviceSub?.unsubscribe();
+        this.serviceSub = undefined;
+      }
+    });
   }
 
   ngOnDestroy(): void {
-    this.sub?.unsubscribe();
+    this.roleSub?.unsubscribe();
+    this.serviceSub?.unsubscribe();
   }
 
   private GetNotifications(): void {

@@ -15,7 +15,11 @@ export class TeamController {
   }
 
   public GetAllTeams(): Observable<ITeam[]> {
-    return this.http.get<ITeam[]>(this._baseUrl);
+    return this.http.get<ITeam[]>(this._baseUrl + 'all');
+  }
+
+  public GetActiveTeams(): Observable<ITeam[]> {
+    return this.http.get<ITeam[]>(this._baseUrl + 'active');
   }
 
   public UpdateTeam(updated: ITeam): Observable<void> {

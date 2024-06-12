@@ -10,6 +10,7 @@ import { FormControl } from '@angular/forms';
 import { ITeam } from '../../models/db/ITeam';
 import { BackendConnectService } from '../../services/backend-connect.service';
 import { SpinnerCardHorizontalStretch } from '../spinner-card/spinner-card.component';
+import { TeamSelectorType } from './team-selector-type';
 
 @Component({
   selector: 'app-team-selector',
@@ -23,6 +24,7 @@ export class TeamSelectorComponent implements OnInit {
 
   @Output() TeamSelected: EventEmitter<ITeam> = new EventEmitter<ITeam>();
 
+  @Input() TeamType: TeamSelectorType | undefined;
   @Input() CardTitle: string = 'Select Team';
   @Input() SelectionTerm: string = 'Select';
   @Input() SpinnerActive: boolean = false;
@@ -32,6 +34,10 @@ export class TeamSelectorComponent implements OnInit {
   constructor(private backend: BackendConnectService) {}
 
   ngOnInit(): void {
+    if (this.TeamType === undefined) {
+      throw new Error('Please configure the component.');
+    }
+
     this.autoCompleteControl.valueChanges.subscribe({
       next: (value) => this.Filter(value ?? ''),
     });
@@ -57,15 +63,34 @@ export class TeamSelectorComponent implements OnInit {
   }
 
   public GetTeamsAutoComplete(): void {
-    this.backend.Team.GetAllTeams().subscribe({
-      next: (teams) => {
-        this.options = {};
-        teams.forEach((element) => {
-          this.options[element.name] = element;
+    switch (this.TeamType) {
+      case TeamSelectorType.All: {
+        this.backend.Team.GetAllTeams().subscribe({
+          next: (teams) => {
+            this.options = {};
+            teams.forEach((element) => {
+              this.options[element.name] = element;
+            });
+            this.Filter(this.autoCompleteControl.value ?? '');
+          },
         });
-        this.Filter(this.autoCompleteControl.value ?? '');
-      },
-    });
+        break;
+      }
+      case TeamSelectorType.Active: {
+        this.backend.Team.GetActiveTeams().subscribe({
+          next: (teams) => {
+            this.options = {};
+            teams.forEach((element) => {
+              this.options[element.name] = element;
+            });
+            this.Filter(this.autoCompleteControl.value ?? '');
+          },
+        });
+        break;
+      }
+      default:
+        throw new Error('Not implemented team type');
+    }
   }
 
   private FormatString(inputStr: string): string {

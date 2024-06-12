@@ -9,6 +9,7 @@ import { StandardSnackbarService } from '../../services/standard-snackbar.servic
 import { HttpErrorResponse } from '@angular/common/http';
 import { TeamSelectorComponent } from '../../commonControls/team-selector/team-selector.component';
 import { TeamSelectorContainerComponent } from '../TeamSelectorContainerComponent';
+import { TeamSelectorType } from '../../commonControls/team-selector/team-selector-type';
 
 @Component({
   selector: 'app-add-remove-team-user',
@@ -16,6 +17,8 @@ import { TeamSelectorContainerComponent } from '../TeamSelectorContainerComponen
   styleUrl: './add-remove-team-user.component.scss',
 })
 export class AddRemoveTeamUserComponent extends TeamSelectorContainerComponent {
+  public TeamType: TeamSelectorType = TeamSelectorType.Active;
+
   private _dbTeamUser: IAllAndTeamUsers | undefined;
 
   public DbSelectedUsers: SelectableElementWrapper<IUser>[] = [];

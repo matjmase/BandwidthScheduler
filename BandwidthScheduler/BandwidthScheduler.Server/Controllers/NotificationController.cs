@@ -1,6 +1,7 @@
 ﻿using BandwidthScheduler.Server.Common.Extensions;
 using BandwidthScheduler.Server.Common.Static;
 using BandwidthScheduler.Server.DbModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ namespace BandwidthScheduler.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "User")]
     public class NotificationController : ControllerBase
     {
         private IConfiguration _config;
