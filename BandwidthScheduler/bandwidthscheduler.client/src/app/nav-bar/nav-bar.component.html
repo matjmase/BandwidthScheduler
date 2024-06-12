@@ -66,6 +66,17 @@
 ></app-notification-panel>
 
 <mat-expansion-panel class="primary-expansion-color" [expanded]="isExpanded">
+  <mat-toolbar color="primary" *appAuthorize="'User'">
+    <button
+      id="notifications-button"
+      mat-icon-button
+      (click)="SubMenuNavigationClick('/notifications')"
+    >
+      <mat-icon>notifications</mat-icon>
+    </button>
+    <label for="notifications-button"> Notifications </label>
+  </mat-toolbar>
+
   <mat-toolbar color="primary" *appAuthorize="'Administrator'">
     <button
       id="team-button"
@@ -97,17 +108,6 @@
       <mat-icon>schedule_send</mat-icon>
     </button>
     <label for="schedule-button"> Schedule </label>
-  </mat-toolbar>
-
-  <mat-toolbar color="primary">
-    <button
-      id="schedule-history-button"
-      mat-icon-button
-      (click)="SubMenuNavigationClick('/history')"
-    >
-      <mat-icon>work_history</mat-icon>
-    </button>
-    <label for="schedule-history-button"> Schedule and History </label>
   </mat-toolbar>
 </mat-expansion-panel>
 

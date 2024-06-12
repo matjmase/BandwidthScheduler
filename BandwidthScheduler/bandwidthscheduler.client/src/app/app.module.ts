@@ -30,7 +30,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { authInterceptor } from './interceptors/auth.interceptor';
 import { AuthenticateDirective } from './directives/authenticate.directive';
-import { ScheduleHistoryComponent } from './schedule-history/schedule-history.component';
 import { AuthorizeDirective } from './directives/authorize.directive';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
@@ -70,6 +69,7 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatRippleModule } from '@angular/material/core';
 import { NotificationPanelComponent } from './nav-bar/notification-panel/notification-panel.component';
+import { NotificationsComponent } from './notifications/notifications.component';
 
 @NgModule({
   declarations: [
@@ -82,7 +82,6 @@ import { NotificationPanelComponent } from './nav-bar/notification-panel/notific
     LoginFormValidatorDirective,
     AuthenticateDirective,
     SchedulePublisherComponent,
-    ScheduleHistoryComponent,
     AuthorizeDirective,
     TeamSelectorComponent,
     AddRemoveTeamUserComponent,
@@ -109,6 +108,7 @@ import { NotificationPanelComponent } from './nav-bar/notification-panel/notific
     DateRangeSelectorComponent,
     DateRangeSelectorValidatorDirective,
     NotificationPanelComponent,
+    NotificationsComponent,
   ],
   imports: [
     BrowserModule,
