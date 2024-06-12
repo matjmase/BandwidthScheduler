@@ -24,8 +24,6 @@ export class EditTeamComponent extends TeamSelectorContainerComponent {
   public NameEditControl = new FormControl('');
   public TeamType: TeamSelectorType = TeamSelectorType.All;
 
-  public TeamName: string = '';
-
   constructor(
     private messageSnackBar: StandardSnackbarService,
     private backend: BackendConnectService
@@ -34,7 +32,7 @@ export class EditTeamComponent extends TeamSelectorContainerComponent {
   }
 
   protected override OnTeamSelected(team: ITeam): void {
-    this.TeamName = team.name;
+    this.NameEditControl.setValue(team.name);
   }
   public override GetHorizontalStretch(): SpinnerCardHorizontalStretch {
     return SpinnerCardHorizontalStretch.Grow;
@@ -44,7 +42,7 @@ export class EditTeamComponent extends TeamSelectorContainerComponent {
     this.WaitingOnSubmit = true;
     const updatedTeam: ITeam = {
       id: this.DbTeam!.id,
-      name: this.TeamName,
+      name: this.NameEditControl.value as string,
       commitments: undefined,
     };
 
@@ -65,7 +63,7 @@ export class EditTeamComponent extends TeamSelectorContainerComponent {
   }
 
   protected override ResetTeamSelector(): void {
-    this.TeamName = '';
+    this.NameEditControl.setValue('');
 
     this.NameEditControl.reset();
   }
