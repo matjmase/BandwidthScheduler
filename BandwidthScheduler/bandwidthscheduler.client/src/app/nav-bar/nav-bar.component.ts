@@ -20,10 +20,10 @@ export class NavBarComponent implements OnInit, OnDestroy {
   private serviceSub: Subscription | undefined;
 
   isExpanded: boolean = false;
-  notificationIsExpanded: boolean = false;
+  NotificationIsExpanded: boolean = false;
 
   unseenNotifications: INotificationResponse | undefined;
-  wrappedNotifications: INotificationWrapper[] | undefined;
+  WrappedNotifications: INotificationWrapper[] | undefined;
 
   constructor(
     private router: Router,
@@ -34,11 +34,14 @@ export class NavBarComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     if (this.backend.Login.GetSavedResponse() !== undefined) {
       this.GetNotifications();
+      this.serviceSub = this.notificationChange.OnChange.subscribe(() =>
+        this.GetNotifications()
+      );
     }
 
     this.roleSub = this.backend.Login.RolesHaveChanged.subscribe(() => {
       if (this.backend.Login.GetSavedResponse() !== undefined) {
-        if (this.serviceSub !== undefined) {
+        if (this.serviceSub === undefined) {
           this.serviceSub = this.notificationChange.OnChange.subscribe(() =>
             this.GetNotifications()
           );
@@ -66,18 +69,18 @@ export class NavBarComponent implements OnInit, OnDestroy {
           (e) => new CommitmentNotificationEntry(e)
         );
 
-        this.wrappedNotifications = [];
+        this.WrappedNotifications = [];
 
         avail.forEach((e) =>
-          this.wrappedNotifications!.push(
+          this.WrappedNotifications!.push(
             new AvailabilityNotificationWrapper(e)
           )
         );
         commit.forEach((e) =>
-          this.wrappedNotifications!.push(new CommitmentNotificationWrapper(e))
+          this.WrappedNotifications!.push(new CommitmentNotificationWrapper(e))
         );
 
-        this.wrappedNotifications = this.wrappedNotifications.sort(
+        this.WrappedNotifications = this.WrappedNotifications.sort(
           (a, b) => b.timeStamp.getDate() - a.timeStamp.getDate()
         );
       },
@@ -90,28 +93,28 @@ export class NavBarComponent implements OnInit, OnDestroy {
     this.isExpanded = !this.isExpanded;
 
     if (this.isExpanded) {
-      this.notificationIsExpanded = false;
+      this.NotificationIsExpanded = false;
     }
   }
 
   public ToggleNotificationExpand(): void {
-    this.notificationIsExpanded = !this.notificationIsExpanded;
+    this.NotificationIsExpanded = !this.NotificationIsExpanded;
 
-    if (this.notificationIsExpanded) {
+    if (this.NotificationIsExpanded) {
       this.isExpanded = false;
     }
   }
 
   public SubMenuNavigationClick(path: string): void {
     this.isExpanded = false;
-    this.notificationIsExpanded = false;
+    this.NotificationIsExpanded = false;
 
     this.router.navigateByUrl(path);
   }
 
   public LogoutClicked(): void {
     this.isExpanded = false;
-    this.notificationIsExpanded = false;
+    this.NotificationIsExpanded = false;
 
     this.backend.Login.Logout();
     this.router.navigate(['']);

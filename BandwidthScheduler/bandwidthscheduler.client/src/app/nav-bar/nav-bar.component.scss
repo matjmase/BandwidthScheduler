@@ -30,14 +30,3 @@ label {
 .nav-bar-spacer {
   margin-bottom: 1rem;
 }
-
-.pop-up-expansion-panel {
-  position: absolute;
-  z-index: 100;
-  right: 0;
-  width: 40%;
-}
-
-:host ::ng-deep .pop-up-expansion-panel .mat-expansion-panel-body {
-  padding-top: 16px;
-}

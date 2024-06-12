@@ -1,6 +1,7 @@
 ﻿using BandwidthScheduler.Server.Common.Extensions;
 using BandwidthScheduler.Server.Common.Static;
 using BandwidthScheduler.Server.DbModels;
+using BandwidthScheduler.Server.Models.Shared.Request;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -56,6 +57,59 @@ namespace BandwidthScheduler.Server.Controllers
             });
         }
 
+        [HttpPut("MarkAvailSeen")]
+        public async Task<IActionResult> MarkAvailSeen([FromBody] SimplePrimitiveRequest<int> id)
+        {
+            var current = DbModelFunction.GetCurrentUser(HttpContext);
+
+            var avail = _db.AvailabilityNotifications.Include(e => e.Availability).First(e => e.UserId == current.Id && id.Payload == e.Id);
+            avail.Seen = true;
+
+            await _db.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpPut("MarkCommitSeen")]
+        public async Task<IActionResult> MarkCommitSeen([FromBody] SimplePrimitiveRequest<int> id)
+        {
+            var current = DbModelFunction.GetCurrentUser(HttpContext);
+
+            var avail = _db.CommitmentNotifications.Include(e => e.Commitment).First(e => e.UserId == current.Id && id.Payload == e.Id);
+            avail.Seen = true;
+
+            await _db.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpPut("MarkAvailNotSeen")]
+        public async Task<IActionResult> MarkAvailNotSeen([FromBody] SimplePrimitiveRequest<int> id)
+        {
+            var current = DbModelFunction.GetCurrentUser(HttpContext);
+
+            var avail = _db.AvailabilityNotifications.Include(e => e.Availability).First(e => e.UserId == current.Id && id.Payload == e.Id);
+            avail.Seen = false;
+
+            await _db.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpPut("MarkCommitNotSeen")]
+        public async Task<IActionResult> MarkCommitNotSeen([FromBody] SimplePrimitiveRequest<int> id)
+        {
+            var current = DbModelFunction.GetCurrentUser(HttpContext);
+
+            var avail = _db.CommitmentNotifications.Include(e => e.Commitment).First(e => e.UserId == current.Id && id.Payload == e.Id);
+            avail.Seen = false;
+
+            await _db.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [NonAction]
         public static IEnumerable<AvailabilityNotification> AddAvailabilityNotification(IEnumerable<Availability> availabilities)
         {
             var notificationsAdd = new HashSet<AvailabilityNotification>();
@@ -67,12 +121,14 @@ namespace BandwidthScheduler.Server.Controllers
                     UserId = avail.UserId,
                     AvailabilityId = avail.Id,
                     TimeStamp = DateTime.Now,
+                    Seen = false,
                 });
             }
 
             return notificationsAdd;
         }
 
+        [NonAction]
         public static IEnumerable<CommitmentNotification> AddCommitmentNotification(IEnumerable<Commitment> commitments)
         {
             var notificationsAdd = new HashSet<CommitmentNotification>();

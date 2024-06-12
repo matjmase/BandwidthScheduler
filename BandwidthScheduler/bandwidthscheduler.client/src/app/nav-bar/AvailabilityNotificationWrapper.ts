@@ -1,8 +1,12 @@
 import { AvailabilityNotificationEntry } from '../models/db/AvailabilityNotificationEntry';
-import { INotificationWrapper } from './INotificationWrapper';
+import { INotificationWrapper, NotificationType } from './INotificationWrapper';
 
 export class AvailabilityNotificationWrapper implements INotificationWrapper {
-  notificationType: string = 'Availability';
+  type: NotificationType = NotificationType.Availability;
+  disabled: boolean = false;
+  get id(): number {
+    return this.avail.id;
+  }
   get timeStamp(): Date {
     return this.avail.timeStamp;
   }
@@ -11,6 +15,12 @@ export class AvailabilityNotificationWrapper implements INotificationWrapper {
   }
   get endTime(): Date {
     return this.avail.availability.endTime;
+  }
+  get seen(): boolean {
+    return this.avail.seen;
+  }
+  set seen(value: boolean) {
+    this.avail.seen = value;
   }
 
   constructor(private avail: AvailabilityNotificationEntry) {}

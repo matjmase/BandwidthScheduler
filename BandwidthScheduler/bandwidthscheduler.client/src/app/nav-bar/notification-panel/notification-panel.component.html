@@ -1,0 +1,51 @@
+<div style="position: relative">
+  <mat-expansion-panel
+    class="pop-up-expansion-panel"
+    [expanded]="NotificationIsExpanded"
+  >
+    <div
+      class="notification-container"
+      *ngFor="let notification of WrappedNotifications; let i = index"
+    >
+      <div class="padded-flex-row" matRipple>
+        <button mat-icon-button id="{{ i }} noti" class="button-middle-align">
+          <mat-icon *ngIf="notification.type === 'Availability'">
+            cancel_schedule_send
+          </mat-icon>
+          <mat-icon *ngIf="notification.type === 'Commitment'">
+            schedule_send
+          </mat-icon>
+        </button>
+        <label for="{{ i }} noti"
+          >{{ notification.type }} Added
+          <div>
+            From:
+            {{ notification.startTime | date : "M/d/yyyy, h:mm a" }}
+            <br />
+            To:
+            {{ notification.endTime | date : "M/d/yyyy, h:mm a" }}
+          </div></label
+        >
+        <div style="flex-grow: 1"></div>
+        <button
+          mat-icon-button
+          class="button-middle-align"
+          *ngIf="!notification.seen"
+          (click)="MarkAsSeen(notification)"
+          [disabled]="notification.disabled"
+        >
+          <mat-icon> notifications_on </mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          class="button-middle-align"
+          *ngIf="notification.seen"
+          (click)="MarkAsUnseen(notification)"
+          [disabled]="notification.disabled"
+        >
+          <mat-icon> notifications_off </mat-icon>
+        </button>
+      </div>
+    </div>
+  </mat-expansion-panel>
+</div>

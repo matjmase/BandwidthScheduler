@@ -1,0 +1,27 @@
+.pop-up-expansion-panel {
+  position: absolute;
+  z-index: 100;
+  right: 0;
+  width: 40%;
+}
+
+:host ::ng-deep .pop-up-expansion-panel .mat-expansion-panel-body {
+  padding-top: 16px;
+}
+
+.button-middle-align {
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.padded-flex-row {
+  display: flex;
+  flex-direction: row;
+  padding-top: 0.5 rem;
+  padding-bottom: 0.5rem;
+}
+
+.notification-container {
+  background-color: whitesmoke;
+  text-align: justify;
+}

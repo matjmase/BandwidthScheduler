@@ -69,6 +69,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatRippleModule } from '@angular/material/core';
+import { NotificationPanelComponent } from './nav-bar/notification-panel/notification-panel.component';
 
 @NgModule({
   declarations: [
@@ -107,6 +108,7 @@ import { MatRippleModule } from '@angular/material/core';
     TeamComponent,
     DateRangeSelectorComponent,
     DateRangeSelectorValidatorDirective,
+    NotificationPanelComponent,
   ],
   imports: [
     BrowserModule,
