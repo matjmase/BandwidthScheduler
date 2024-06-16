@@ -153,11 +153,11 @@ namespace BandwidthScheduler.Server.Controllers
             availNoti = new List<AvailabilityNotification>();
             commitNoti = new List<CommitmentNotification>();
 
-            var availHasElements = true;
-            var commitHasElements = true;
+            var availEnum = availQuery.GetEnumerator();
+            var commitEnum = commitQuery.GetEnumerator();
 
-            var availIndex = 0;
-            var commitIndex = 0;
+            var availHasElements = availEnum.MoveNext();
+            var commitHasElements = commitEnum.MoveNext();
 
             Func<bool> checkSkipAndTake = () =>
             {
@@ -173,46 +173,24 @@ namespace BandwidthScheduler.Server.Controllers
                 }
             };
 
-            while (skipAmount != 0 || takeAmount != 0)
+            while (!(skipAmount == 0 && takeAmount == 0) && (availHasElements || commitHasElements))
             {
                 AvailabilityNotification? availEle = null;
-
-                if (availHasElements)
-                {
-                    availEle = availQuery.Skip(availIndex).Take(1).FirstOrDefault();
-
-                    if (availEle == null)
-                    {
-                        availHasElements = false;
-                    }
-                }
-
                 CommitmentNotification? commitEle = null;
 
-                if (commitHasElements)
+                if (availHasElements && commitHasElements)
                 {
-                    commitEle = commitQuery.Skip(commitIndex).Take(1).FirstOrDefault();
+                    availEle = availEnum.Current;
+                    commitEle = commitEnum.Current;
 
-                    if (commitEle == null)
-                    {
-                        commitHasElements = false;
-                    }
-                }
-
-                if (!availHasElements && !commitHasElements)
-                {
-                    break;
-                }
-
-                if (availEle != null && commitEle != null)
-                {
                     if (availEle.TimeStamp < commitEle.TimeStamp)
                     {
-                        if(checkSkipAndTake())
+                        if (checkSkipAndTake())
                         {
                             availNoti.Add(availEle);
                         }
-                        availIndex++;
+
+                        availHasElements = availEnum.MoveNext();
                     }
                     else
                     {
@@ -220,26 +198,36 @@ namespace BandwidthScheduler.Server.Controllers
                         {
                             commitNoti.Add(commitEle);
                         }
-                        commitIndex++;
+
+                        commitHasElements = commitEnum.MoveNext();
                     }
                 }
-                else if (availEle != null)
+                else if (availHasElements)
                 {
+                    availEle = availEnum.Current;
+
                     if (checkSkipAndTake())
                     {
                         availNoti.Add(availEle);
                     }
-                    availIndex++;
+
+                    availHasElements = availEnum.MoveNext();
                 }
-                else
+                else if (commitHasElements)
                 {
+                    commitEle = commitEnum.Current;
+
                     if (checkSkipAndTake())
                     {
                         commitNoti.Add(commitEle);
                     }
-                    commitIndex++;
+
+                    commitHasElements = commitEnum.MoveNext();
                 }
             }
+
+            availEnum.Dispose();
+            commitEnum.Dispose();
 
             foreach (var notification in availNoti)
             {
