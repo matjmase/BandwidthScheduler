@@ -4,6 +4,7 @@ import { BackendConnectService } from '../services/backend-connect.service';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { StandardSnackbarService } from '../services/standard-snackbar.service';
+import { NotificationUpdateService } from '../services/notification-update.service';
 
 @Component({
   selector: 'app-login',
@@ -16,7 +17,8 @@ export class LoginComponent {
   constructor(
     private backend: BackendConnectService,
     private router: Router,
-    private messageSnackBar: StandardSnackbarService
+    private messageSnackBar: StandardSnackbarService,
+    private notification: NotificationUpdateService
   ) {}
 
   public Submit(form: NgForm): void {
@@ -26,6 +28,7 @@ export class LoginComponent {
       complete: () => {
         this.router.navigate(['']);
         this.waitingOnSubmit = false;
+        this.notification.OnChange.next();
       },
       error: (errorResp: HttpErrorResponse) => {
         this.messageSnackBar.OpenErrorMessage(errorResp.error);

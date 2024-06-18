@@ -149,7 +149,7 @@ export class CommitmentComponent implements OnInit {
   }
 
   public AdjustEnd(end: Date, rEnd: Date): Date {
-    return rEnd > end ? end : rEnd;
+    return rEnd < end ? rEnd : end;
   }
 
   public GetTimeSpanDiff(
