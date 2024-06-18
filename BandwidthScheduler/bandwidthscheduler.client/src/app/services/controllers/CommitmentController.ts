@@ -1,9 +1,9 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
-import { DateTimeRangeSelectorModel } from '../../commonControls/date-time-range-selector/date-time-range-selector-model';
 import { JsonCustom } from '../../models/JsonCustom';
 import { ICommitment } from '../../models/db/ICommitment';
 import { CommitmentEntry } from '../../models/db/CommitmentEntry';
+import { IDateRangeSelectorModel } from '../../commonControls/date-range-selector/IDateRangeSelectorModel';
 
 export class CommitmentController {
   private _baseUrl: string;
@@ -13,7 +13,7 @@ export class CommitmentController {
   }
 
   public GetUserCommitments(
-    range: DateTimeRangeSelectorModel
+    range: IDateRangeSelectorModel
   ): Observable<CommitmentEntry[]> {
     const headers = new HttpHeaders()
       .set('start', JsonCustom.stringify(range.start))
@@ -26,7 +26,7 @@ export class CommitmentController {
   }
 
   public GetTeamCommitments(
-    range: DateTimeRangeSelectorModel,
+    range: IDateRangeSelectorModel,
     teamId: number
   ): Observable<CommitmentEntry[]> {
     const headers = new HttpHeaders()

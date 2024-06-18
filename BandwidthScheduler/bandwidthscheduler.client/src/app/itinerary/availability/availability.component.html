@@ -1,9 +1,10 @@
 <h3>Choose Availability</h3>
 <mat-divider></mat-divider>
 <div>
-  <app-date-time-range-selector
-    (DateTimeRangeSelected)="SelectedTimeRange($event)"
-  ></app-date-time-range-selector>
+  <app-date-range-selector-submit
+    [(Model)]="TimeRange"
+    (ModelSubmit)="TimeRangeModelSubmit($event)"
+  ></app-date-range-selector-submit>
 
   <div *ngIf="loading" class="spinner-vert-spacer">
     <mat-spinner class="spinner-horiz-center"></mat-spinner>

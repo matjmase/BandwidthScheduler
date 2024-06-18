@@ -1,5 +1,16 @@
-import { Component, EventEmitter, Output } from '@angular/core';
-import { ControlValueAccessor, NgForm } from '@angular/forms';
+import {
+  Component,
+  EventEmitter,
+  OnChanges,
+  Output,
+  SimpleChanges,
+  forwardRef,
+} from '@angular/core';
+import {
+  ControlValueAccessor,
+  NG_VALUE_ACCESSOR,
+  NgForm,
+} from '@angular/forms';
 import { IDateRangeSelectorModel } from './IDateRangeSelectorModel';
 import { TimePickerModel } from '../../models/TimePickerModel';
 
@@ -7,34 +18,34 @@ import { TimePickerModel } from '../../models/TimePickerModel';
   selector: 'app-date-range-selector',
   templateUrl: './date-range-selector.component.html',
   styleUrl: './date-range-selector.component.scss',
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => DateRangeSelectorComponent),
+      multi: true,
+    },
+  ],
 })
 export class DateRangeSelectorComponent implements ControlValueAccessor {
-  @Output()
-  public DateRangeSelected: EventEmitter<IDateRangeSelectorModel> =
-    new EventEmitter<IDateRangeSelectorModel>();
+  public date1: Date | undefined;
+  public time1: TimePickerModel = new TimePickerModel();
+  public date2: Date | undefined;
+  public time2: TimePickerModel = new TimePickerModel();
 
-  public OnSubmit(form: NgForm): void {
-    if (form.errors) {
-      this.SubmitModel(undefined);
-      return;
-    }
+  private ApplyModel(model: IDateRangeSelectorModel): void {
+    this.date1 = model.start;
+    this.time1 = TimePickerModel.FromTime(
+      model.start.getHours(),
+      model.start.getMinutes(),
+      0
+    );
 
-    const date1: Date = form.value.datePicker1;
-    const time1: TimePickerModel = form.value.timePicker1;
-    const date2: Date = form.value.datePicker2;
-    const time2: TimePickerModel = form.value.timePicker2;
-
-    const model: IDateRangeSelectorModel = {
-      start: time1.TransformDate(date1),
-      end: time2.TransformDate(date2),
-    };
-
-    this.SubmitModel(model);
-  }
-
-  private SubmitModel(model: IDateRangeSelectorModel | undefined): void {
-    this.DateRangeSelected.emit(model);
-    this.onChange(model);
+    this.date2 = model.end;
+    this.time2 = TimePickerModel.FromTime(
+      model.end.getHours(),
+      model.end.getMinutes(),
+      0
+    );
   }
 
   public IsDisabled: boolean = false;
@@ -43,8 +54,10 @@ export class DateRangeSelectorComponent implements ControlValueAccessor {
 
   onTouched = () => {};
 
-  writeValue(obj: IDateRangeSelectorModel): void {
-    this.SubmitModel(obj);
+  writeValue(obj: IDateRangeSelectorModel | undefined): void {
+    if (obj) {
+      this.ApplyModel(obj);
+    }
   }
   registerOnChange(
     fn: (model: IDateRangeSelectorModel | undefined) => {}
@@ -56,5 +69,21 @@ export class DateRangeSelectorComponent implements ControlValueAccessor {
   }
   setDisabledState?(isDisabled: boolean): void {
     this.IsDisabled = isDisabled;
+  }
+
+  public ModelChanged(): void {
+    this.onTouched();
+
+    if (this.date1 && this.date2) {
+      const start = this.time1.TransformDate(this.date1);
+      const end = this.time2.TransformDate(this.date2);
+
+      const output: IDateRangeSelectorModel = {
+        start: start,
+        end: end,
+      };
+
+      this.onChange(output);
+    }
   }
 }

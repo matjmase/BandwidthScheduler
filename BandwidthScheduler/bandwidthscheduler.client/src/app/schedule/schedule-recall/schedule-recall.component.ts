@@ -1,5 +1,4 @@
 import { Component, ViewChild } from '@angular/core';
-import { DateTimeRangeSelectorModel } from '../../commonControls/date-time-range-selector/date-time-range-selector-model';
 import { ITeam } from '../../models/db/ITeam';
 import { IGridLegendReadOnlyModel } from '../common/grid-legend-read-only/grid-legend-read-only-model';
 import { CommitmentEntry } from '../../models/db/CommitmentEntry';
@@ -17,6 +16,7 @@ import {
 } from '../../commonControls/message-modal-box/message-modal-box-model';
 import { NotificationUpdateService } from '../../services/notification-update.service';
 import { TeamSelectorType } from '../../commonControls/team-selector/team-selector-type';
+import { IDateRangeSelectorModel } from '../../commonControls/date-range-selector/IDateRangeSelectorModel';
 
 @Component({
   selector: 'app-schedule-recall',
@@ -38,7 +38,7 @@ export class ScheduleRecallComponent {
 
   public SelectedTeam: ITeam | undefined;
 
-  public SelectedTimeRange: DateTimeRangeSelectorModel | undefined;
+  public SelectedTimeRange: IDateRangeSelectorModel | undefined;
 
   public GridModel: IGridLegendReadOnlyModel | undefined;
 
@@ -55,8 +55,8 @@ export class ScheduleRecallComponent {
     this.TryGetCommitments();
   }
 
-  public SubmitRangeModel(model: DateTimeRangeSelectorModel): void {
-    this.SelectedTimeRange = model;
+  public SubmitRangeModel(): void {
+    console.log(this.SelectedTimeRange);
     this.TryGetCommitments();
   }
 
@@ -65,7 +65,7 @@ export class ScheduleRecallComponent {
       const range = this.SelectedTimeRange!;
 
       this.backend.Commitment.GetTeamCommitments(
-        this.SelectedTimeRange,
+        this.SelectedTimeRange!,
         this.SelectedTeam.id
       ).subscribe({
         next: (commitments) => {

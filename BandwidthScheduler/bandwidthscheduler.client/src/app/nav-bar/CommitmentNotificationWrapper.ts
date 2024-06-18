@@ -23,5 +23,5 @@ export class CommitmentNotificationWrapper implements INotificationWrapper {
     this.commit.seen = value;
   }
 
-  constructor(private commit: CommitmentNotificationEntry) {}
+  constructor(public commit: CommitmentNotificationEntry) {}
 }

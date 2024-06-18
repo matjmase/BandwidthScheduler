@@ -7,8 +7,13 @@
       class="notification-container"
       *ngFor="let notification of WrappedNotifications; let i = index"
     >
-      <div class="padded-flex-row" matRipple>
-        <button mat-icon-button id="{{ i }} noti" class="button-middle-align">
+      <div class="padded-flex-row" matRipple (click)="NavigateTo(notification)">
+        <button
+          disableRipple
+          mat-icon-button
+          id="{{ i }} noti"
+          class="button-middle-align"
+        >
           <mat-icon *ngIf="notification.type === 'Availability'">
             cancel_schedule_send
           </mat-icon>
@@ -31,7 +36,7 @@
           mat-icon-button
           class="button-middle-align"
           *ngIf="!notification.seen"
-          (click)="MarkAsSeen(notification)"
+          (click)="MarkAsSeen($event, notification)"
           [disabled]="notification.disabled"
         >
           <mat-icon> notifications_on </mat-icon>
@@ -40,7 +45,7 @@
           mat-icon-button
           class="button-middle-align"
           *ngIf="notification.seen"
-          (click)="MarkAsUnseen(notification)"
+          (click)="MarkAsUnseen($event, notification)"
           [disabled]="notification.disabled"
         >
           <mat-icon> notifications_off </mat-icon>

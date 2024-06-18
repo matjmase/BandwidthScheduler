@@ -1,9 +1,10 @@
 <h3>View Commitments</h3>
 <mat-divider></mat-divider>
 <div>
-  <app-date-range-selector
-    (DateRangeSelected)="SelectedDateRange($event)"
-  ></app-date-range-selector>
+  <app-date-range-selector-submit
+    [(Model)]="TimeRange"
+    (ModelSubmit)="SelectedDateRange($event)"
+  ></app-date-range-selector-submit>
 
   <div *ngIf="loading" class="spinner-vert-spacer">
     <mat-spinner class="spinner-horiz-center"></mat-spinner>
@@ -70,11 +71,15 @@
                 <th mat-header-cell *matHeaderCellDef>Start Time</th>
                 <td mat-cell *matCellDef="let element">
                   {{
-                    AdjustStart(element.startTime) | date : "M/d/yyyy, h:mm a"
+                    AdjustStart(element.startTime, TimeRange!.start)
+                      | date : "M/d/yyyy, h:mm a"
                   }}
                   <span
                     class="commitment-time-accent"
-                    *ngIf="AdjustStart(element.startTime) !== element.startTime"
+                    *ngIf="
+                      AdjustStart(element.startTime, TimeRange!.start) !==
+                      element.startTime
+                    "
                   >
                     ({{ element.startTime | date : "M/d/yyyy, h:mm a" }})
                   </span>
@@ -84,10 +89,16 @@
               <ng-container matColumnDef="endTime">
                 <th mat-header-cell *matHeaderCellDef>End Time</th>
                 <td mat-cell *matCellDef="let element">
-                  {{ AdjustEnd(element.endTime) | date : "M/d/yyyy, h:mm a" }}
+                  {{
+                    AdjustEnd(element.endTime, TimeRange!.end)
+                      | date : "M/d/yyyy, h:mm a"
+                  }}
                   <span
                     class="commitment-time-accent"
-                    *ngIf="AdjustEnd(element.endTime) !== element.endTime"
+                    *ngIf="
+                      AdjustEnd(element.endTime, TimeRange!.end) !==
+                      element.endTime
+                    "
                   >
                     ({{ element.endTime | date : "M/d/yyyy, h:mm a" }})
                   </span>
@@ -98,15 +109,28 @@
                 <th mat-header-cell *matHeaderCellDef>Differential</th>
                 <td mat-cell *matCellDef="let element">
                   {{
-                    GetTimeSpanDiff(element.startTime, element.endTime)
-                      .totalHours -
-                      (GetTimeSpanDiff(element.startTime, element.endTime)
-                        .totalHours %
+                    GetTimeSpanDiff(
+                      element.startTime,
+                      element.endTime,
+                      TimeRange!.start,
+                      TimeRange!.end
+                    ).totalHours -
+                      (GetTimeSpanDiff(
+                        element.startTime,
+                        element.endTime,
+                        TimeRange!.start,
+                        TimeRange!.end
+                      ).totalHours %
                         1)
                   }}
                   hours,
                   {{
-                    GetTimeSpanDiff(element.startTime, element.endTime).minutes
+                    GetTimeSpanDiff(
+                      element.startTime,
+                      element.endTime,
+                      TimeRange!.start,
+                      TimeRange!.end
+                    ).minutes
                   }}
                   minutes
                 </td>

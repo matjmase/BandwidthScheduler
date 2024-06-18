@@ -9,6 +9,16 @@ export class TimePickerModel {
     this.second = 0;
   }
 
+  public static FromTime(hour: number, minute: number, second: number) {
+    const output = new TimePickerModel();
+
+    output.hour = hour;
+    output.minute = minute;
+    output.second = second;
+
+    return output;
+  }
+
   public TransformDate(day: Date): Date {
     const output = new Date(day);
 

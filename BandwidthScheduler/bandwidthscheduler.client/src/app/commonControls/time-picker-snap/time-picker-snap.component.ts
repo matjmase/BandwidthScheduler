@@ -5,7 +5,9 @@ import {
   ChangeDetectorRef,
   Component,
   Input,
+  OnChanges,
   OnInit,
+  SimpleChanges,
   forwardRef,
 } from '@angular/core';
 import { TimePickerModel } from '../../models/TimePickerModel';
@@ -23,30 +25,14 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
     },
   ],
 })
-export class TimePickerSnapComponent {
+export class TimePickerSnapComponent
+  implements ControlValueAccessor, OnChanges
+{
   @Input() public Step: number = 30;
-
-  @Input() public set Hours(val: number) {
-    const clone = this.TimeModel.Clone();
-    clone.hour = val;
-    this.TimeModel = clone;
-  }
-  @Input() public set Minutes(val: number) {
-    const clone = this.TimeModel.Clone();
-    clone.minute = val;
-    this.TimeModel = clone;
-  }
-  @Input() public set Seconds(val: number) {
-    const clone = this.TimeModel.Clone();
-    clone.second = val;
-    this.TimeModel = clone;
-  }
 
   private _timeModel: TimePickerModel = new TimePickerModel();
 
   public set TimeModel(model: TimePickerModel) {
-    if (!model) return;
-
     const newModel = new TimePickerModel();
 
     const minMod = model.minute % this.Step;
@@ -59,29 +45,27 @@ export class TimePickerSnapComponent {
     newModel.minute = minuteRounded;
     newModel.second = model.second;
     this._timeModel = newModel;
-    this.onChange(this.TimeModel);
   }
 
-  public get TimeModel() {
+  public get TimeModel(): TimePickerModel {
     return this._timeModel;
   }
 
   public IsDisabled: boolean = false;
 
-  // Function to call when the rating changes.
-  private onChange = (model: TimePickerModel) => {};
+  private onChange = (model: TimePickerModel | undefined) => {};
 
-  // Function to call when the input is touched (when a star is clicked).
   private onTouched = () => {};
 
   writeValue(model: TimePickerModel | undefined): void {
-    if (!model) {
-      this.TimeModel = new TimePickerModel();
-    } else {
+    if (model) {
       this.TimeModel = model;
+    } else {
+      this.TimeModel = new TimePickerModel();
+      this.onChange(this.TimeModel);
     }
   }
-  registerOnChange(fn: any): void {
+  registerOnChange(fn: (model: TimePickerModel | undefined) => {}): void {
     this.onChange = fn;
   }
   registerOnTouched(fn: any): void {
@@ -89,5 +73,14 @@ export class TimePickerSnapComponent {
   }
   setDisabledState?(isDisabled: boolean): void {
     this.IsDisabled = isDisabled;
+  }
+
+  pickerChanges(newModel: TimePickerModel): void {
+    this.TimeModel = newModel;
+    this.onChange(this.TimeModel);
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    console.log(this.TimeModel);
   }
 }

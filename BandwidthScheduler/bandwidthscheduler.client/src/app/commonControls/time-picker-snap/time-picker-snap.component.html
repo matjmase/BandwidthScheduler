@@ -1,4 +1,5 @@
 <ngb-timepicker
+  (ngModelChange)="pickerChanges($event)"
   [(ngModel)]="TimeModel"
   [disabled]="IsDisabled"
   [minuteStep]="Step"

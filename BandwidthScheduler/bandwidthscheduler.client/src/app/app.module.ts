@@ -43,8 +43,6 @@ import { TeamSelectorComponent } from './commonControls/team-selector/team-selec
 import { ColorElementDirective } from './directives/color-element.directive';
 import { SpinnerCardComponent } from './commonControls/spinner-card/spinner-card.component';
 import { TimePickerSnapComponent } from './commonControls/time-picker-snap/time-picker-snap.component';
-import { DateTimeRangeSelectorComponent } from './commonControls/date-time-range-selector/date-time-range-selector.component';
-import { DateTimeRangeSelectorValidatorDirective } from './validators/date-time-range-selector-validator.directive';
 import { UserLegendComponent } from './commonControls/user-legend/user-legend.component';
 import { ScheduleComponent } from './schedule/schedule.component';
 import { GridLegendReadOnlyComponent } from './schedule/common/grid-legend-read-only/grid-legend-read-only.component';
@@ -63,13 +61,13 @@ import { AddTeamComponent } from './team/add-team/add-team.component';
 import { EditTeamComponent } from './team/edit-team/edit-team.component';
 import { RemoveTeamComponent } from './team/remove-team/remove-team.component';
 import { DateRangeSelectorComponent } from './commonControls/date-range-selector/date-range-selector.component';
-import { DateRangeSelectorValidatorDirective } from './validators/date-range-selector-validator.directive';
 import { MatTableModule } from '@angular/material/table';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatRippleModule } from '@angular/material/core';
 import { NotificationPanelComponent } from './nav-bar/notification-panel/notification-panel.component';
 import { NotificationsComponent } from './notifications/notifications.component';
+import { DateRangeSelectorSubmitComponent } from './commonControls/date-range-selector-submit/date-range-selector-submit.component';
 
 @NgModule({
   declarations: [
@@ -92,8 +90,6 @@ import { NotificationsComponent } from './notifications/notifications.component'
     ColorElementDirective,
     SpinnerCardComponent,
     TimePickerSnapComponent,
-    DateTimeRangeSelectorComponent,
-    DateTimeRangeSelectorValidatorDirective,
     UserLegendComponent,
     ScheduleRecallComponent,
     GridLegendReadOnlyComponent,
@@ -106,9 +102,9 @@ import { NotificationsComponent } from './notifications/notifications.component'
     ItineraryComponent,
     TeamComponent,
     DateRangeSelectorComponent,
-    DateRangeSelectorValidatorDirective,
     NotificationPanelComponent,
     NotificationsComponent,
+    DateRangeSelectorSubmitComponent,
   ],
   imports: [
     BrowserModule,

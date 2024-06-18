@@ -1,0 +1,19 @@
+<app-date-range-selector #selector="ngModel" [(ngModel)]="Model">
+  <div>
+    <mat-error *ngIf="Validate()?.['ModelIsUndefined'] && selector.touched"
+      >Please enter a valid start and end time.</mat-error
+    >
+    <mat-error *ngIf="Validate()?.['StartMustBeBefore'] && selector.touched"
+      >First Date Time must be before second Date Time.</mat-error
+    >
+    <button
+      mat-stroked-button
+      type="submit"
+      [disabled]="Validate()"
+      color="primary"
+      (click)="OnSubmit()"
+    >
+      Select
+    </button>
+  </div>
+</app-date-range-selector>

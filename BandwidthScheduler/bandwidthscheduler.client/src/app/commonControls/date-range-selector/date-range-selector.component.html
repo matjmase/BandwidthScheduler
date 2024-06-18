@@ -1,101 +1,78 @@
 <mat-card>
   <mat-card-title> Time Range </mat-card-title>
   <mat-card-content>
-    <form
-      appDateRangeSelectorValidator
-      #timeRangeForm="ngForm"
-      (submit)="OnSubmit(timeRangeForm)"
-    >
-      <div style="display: flex; flex-direction: row; align-items: center">
-        <div style="flex-grow: 1"></div>
-        <div>
-          <mat-form-field>
-            <mat-label>Choose a date</mat-label>
-            <input
-              matInput
-              [matDatepicker]="datepicker1"
-              name="datePicker1"
-              id="datePicker1"
-              ngModel
-            />
-            <mat-hint>MM/DD/YYYY</mat-hint>
-            <mat-datepicker-toggle
-              matIconSuffix
-              [for]="datepicker1"
-            ></mat-datepicker-toggle>
-            <mat-datepicker #datepicker1>
-              <mat-datepicker-actions>
-                <button mat-button matDatepickerCancel>Cancel</button>
-                <button mat-raised-button color="primary" matDatepickerApply>
-                  Apply
-                </button>
-              </mat-datepicker-actions>
-            </mat-datepicker>
-          </mat-form-field>
-          <div style="display: flex; flex-direction: row">
-            <div style="flex-grow: 1"></div>
-            <app-time-picker-snap
-              name="timePicker1"
-              id="timePicker1"
-              ngModel
-            ></app-time-picker-snap>
-            <div style="flex-grow: 1"></div>
-          </div>
+    <div style="display: flex; flex-direction: row; align-items: center">
+      <div style="flex-grow: 1"></div>
+      <div>
+        <mat-form-field>
+          <mat-label>Choose a date</mat-label>
+          <input
+            matInput
+            [matDatepicker]="datepicker1"
+            [(ngModel)]="date1"
+            (ngModelChange)="ModelChanged()"
+          />
+          <mat-hint>MM/DD/YYYY</mat-hint>
+          <mat-datepicker-toggle
+            matIconSuffix
+            [for]="datepicker1"
+          ></mat-datepicker-toggle>
+          <mat-datepicker #datepicker1>
+            <mat-datepicker-actions>
+              <button mat-button matDatepickerCancel>Cancel</button>
+              <button mat-raised-button color="primary" matDatepickerApply>
+                Apply
+              </button>
+            </mat-datepicker-actions>
+          </mat-datepicker>
+        </mat-form-field>
+        <div style="display: flex; flex-direction: row">
+          <div style="flex-grow: 1"></div>
+          <app-time-picker-snap
+            [(ngModel)]="time1"
+            (ngModelChange)="ModelChanged()"
+          ></app-time-picker-snap>
+          <div style="flex-grow: 1"></div>
         </div>
-
-        <p style="font-size: 65px">-</p>
-
-        <div>
-          <mat-form-field>
-            <mat-label>Choose a date</mat-label>
-            <input
-              matInput
-              [matDatepicker]="datepicker2"
-              name="datePicker2"
-              id="datePicker2"
-              ngModel
-            />
-            <mat-hint>MM/DD/YYYY</mat-hint>
-            <mat-datepicker-toggle
-              matIconSuffix
-              [for]="datepicker2"
-            ></mat-datepicker-toggle>
-            <mat-datepicker #datepicker2>
-              <mat-datepicker-actions>
-                <button mat-button matDatepickerCancel>Cancel</button>
-                <button mat-raised-button color="primary" matDatepickerApply>
-                  Apply
-                </button>
-              </mat-datepicker-actions>
-            </mat-datepicker>
-          </mat-form-field>
-          <div style="display: flex; flex-direction: row">
-            <div style="flex-grow: 1"></div>
-            <app-time-picker-snap
-              name="timePicker2"
-              id="timePicker2"
-              ngModel
-            ></app-time-picker-snap>
-            <div style="flex-grow: 1"></div>
-          </div>
-        </div>
-
-        <div style="flex-grow: 1"></div>
       </div>
+
+      <p style="font-size: 65px">-</p>
 
       <div>
-        <mat-error *ngIf="timeRangeForm.errors?.['StartMustBeBefore']"
-          >First Date Time must be before second Date Time.</mat-error
-        >
-        <button
-          mat-stroked-button
-          type="submit"
-          [disabled]="timeRangeForm.errors"
-          color="primary"
-        >
-          Select
-        </button>
+        <mat-form-field>
+          <mat-label>Choose a date</mat-label>
+          <input
+            matInput
+            [matDatepicker]="datepicker2"
+            [(ngModel)]="date2"
+            (ngModelChange)="ModelChanged()"
+          />
+          <mat-hint>MM/DD/YYYY</mat-hint>
+          <mat-datepicker-toggle
+            matIconSuffix
+            [for]="datepicker2"
+          ></mat-datepicker-toggle>
+          <mat-datepicker #datepicker2>
+            <mat-datepicker-actions>
+              <button mat-button matDatepickerCancel>Cancel</button>
+              <button mat-raised-button color="primary" matDatepickerApply>
+                Apply
+              </button>
+            </mat-datepicker-actions>
+          </mat-datepicker>
+        </mat-form-field>
+        <div style="display: flex; flex-direction: row">
+          <div style="flex-grow: 1"></div>
+          <app-time-picker-snap
+            [(ngModel)]="time2"
+            (ngModelChange)="ModelChanged()"
+          ></app-time-picker-snap>
+          <div style="flex-grow: 1"></div>
+        </div>
       </div>
-    </form>
+
+      <div style="flex-grow: 1"></div>
+    </div>
+    <ng-content></ng-content>
   </mat-card-content>
 </mat-card>

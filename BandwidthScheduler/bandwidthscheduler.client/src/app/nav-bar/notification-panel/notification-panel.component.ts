@@ -4,6 +4,9 @@ import {
   NotificationType,
 } from '../INotificationWrapper';
 import { BackendConnectService } from '../../services/backend-connect.service';
+import { Router } from '@angular/router';
+import { AvailabilityNotificationWrapper } from '../AvailabilityNotificationWrapper';
+import { CommitmentNotificationWrapper } from '../CommitmentNotificationWrapper';
 
 @Component({
   selector: 'app-notification-panel',
@@ -14,9 +17,39 @@ export class NotificationPanelComponent {
   @Input() NotificationIsExpanded: boolean = false;
   @Input() WrappedNotifications: INotificationWrapper[] | undefined;
 
-  constructor(private backend: BackendConnectService) {}
+  constructor(private backend: BackendConnectService, private router: Router) {}
 
-  public MarkAsSeen(notification: INotificationWrapper): void {
+  public NavigateTo(wrapper: INotificationWrapper) {
+    let notification: any;
+
+    switch (wrapper.type) {
+      case NotificationType.Availability: {
+        notification = (<AvailabilityNotificationWrapper>wrapper).avail;
+        break;
+      }
+      case NotificationType.Commitment: {
+        notification = (<CommitmentNotificationWrapper>wrapper).commit;
+        break;
+      }
+      default:
+        throw new Error('Not Implemented Notification wrapper type');
+    }
+
+    this.router.navigate([
+      '/itinerary',
+      {
+        notificationType: JSON.stringify(wrapper.type),
+        notification: JSON.stringify(notification),
+      },
+    ]);
+  }
+
+  public MarkAsSeen(
+    event: MouseEvent,
+    notification: INotificationWrapper
+  ): void {
+    event.stopPropagation();
+
     notification.disabled = true;
     notification.seen = true;
 
@@ -52,7 +85,12 @@ export class NotificationPanelComponent {
     }
   }
 
-  public MarkAsUnseen(notification: INotificationWrapper): void {
+  public MarkAsUnseen(
+    event: MouseEvent,
+    notification: INotificationWrapper
+  ): void {
+    event.stopPropagation();
+
     notification.disabled = true;
     notification.seen = false;
 

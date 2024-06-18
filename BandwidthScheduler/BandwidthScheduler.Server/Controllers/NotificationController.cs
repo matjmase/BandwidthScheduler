@@ -232,12 +232,14 @@ namespace BandwidthScheduler.Server.Controllers
             foreach (var notification in availNoti)
             {
                 notification.ExplicitlyMarkDateTimesAsUtc();
+                notification.Availability.ExplicitlyMarkDateTimesAsUtc();
                 notification.NullifyRedundancy();
             }
 
             foreach (var notification in commitNoti)
             {
                 notification.ExplicitlyMarkDateTimesAsUtc();
+                notification.Commitment.ExplicitlyMarkDateTimesAsUtc();
                 notification.NullifyRedundancy();
             }
         }

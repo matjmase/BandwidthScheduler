@@ -5,10 +5,11 @@
 
 <mat-divider *ngIf="SelectedTeam"></mat-divider>
 
-<app-date-time-range-selector
+<app-date-range-selector-submit
   *ngIf="SelectedTeam"
-  (DateTimeRangeSelected)="SubmitRangeModel($event)"
-></app-date-time-range-selector>
+  [(Model)]="SelectedTimeRange"
+  (ModelSubmit)="SubmitRangeModel()"
+></app-date-range-selector-submit>
 
 <mat-divider *ngIf="SelectedTimeRange"></mat-divider>
 

@@ -9,14 +9,11 @@ import { ITeam } from '../../models/db/ITeam';
 import { IScheduleProposalAmount } from '../../models/IScheduleProposalAmount';
 import { IScheduleProposalUserProcessed } from '../../models/IScheduleProposalUser';
 import { IScheduleProposalResponse } from '../../models/IScheduleProposalResponse';
-import { HttpErrorResponse } from '@angular/common/http';
 import { StandardSnackbarService } from '../../services/standard-snackbar.service';
-import { DateTimeRangeSelectorModel } from '../../commonControls/date-time-range-selector/date-time-range-selector-model';
 import {
   GridRenderingModel,
   GridRenderingTimeFrame,
 } from './grid-rendering-proposal/grid-rendering-model';
-import { ICommitment } from '../../models/db/ICommitment';
 import { CommitmentEntry } from '../../models/db/CommitmentEntry';
 import { MessageModalBoxComponent } from '../../commonControls/message-modal-box/message-modal-box.component';
 import {
@@ -25,6 +22,7 @@ import {
 } from '../../commonControls/message-modal-box/message-modal-box-model';
 import { NotificationUpdateService } from '../../services/notification-update.service';
 import { TeamSelectorType } from '../../commonControls/team-selector/team-selector-type';
+import { IDateRangeSelectorModel } from '../../commonControls/date-range-selector/IDateRangeSelectorModel';
 
 @Component({
   selector: 'app-schedule-publisher',
@@ -49,7 +47,7 @@ export class SchedulePublisherComponent {
 
   public SelectedTeam: ITeam | undefined;
 
-  public SelectedTimeRange: DateTimeRangeSelectorModel | undefined;
+  public SelectedTimeRange: IDateRangeSelectorModel | undefined;
 
   public SelectedMaxEmployees: number | undefined;
 
@@ -71,8 +69,7 @@ export class SchedulePublisherComponent {
     this.TryCreateRenderingModel();
   }
 
-  public SubmitRangeModel(model: DateTimeRangeSelectorModel) {
-    this.SelectedTimeRange = model;
+  public SubmitRangeModel() {
     this.TryCreateRenderingModel();
   }
 
@@ -105,7 +102,7 @@ export class SchedulePublisherComponent {
 
   private CreateRenderingModel(
     max: number,
-    range: DateTimeRangeSelectorModel,
+    range: IDateRangeSelectorModel,
     commitments: CommitmentEntry[]
   ) {
     const blockedOutCommitments: CommitmentEntry[][] = [];

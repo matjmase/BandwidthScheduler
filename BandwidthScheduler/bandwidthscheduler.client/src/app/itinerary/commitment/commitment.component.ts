@@ -1,5 +1,4 @@
-import { Component } from '@angular/core';
-import { DateTimeRangeSelectorModel } from '../../commonControls/date-time-range-selector/date-time-range-selector-model';
+import { Component, OnInit } from '@angular/core';
 import { BackendConnectService } from '../../services/backend-connect.service';
 import { CommitmentEntry } from '../../models/db/CommitmentEntry';
 import { ICommitmentSummary } from './ICommitmentSummary';
@@ -11,6 +10,11 @@ import {
   transition,
   trigger,
 } from '@angular/animations';
+import { IDateRangeSelectorModel } from '../../commonControls/date-range-selector/IDateRangeSelectorModel';
+import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
+import { NotificationType } from '../../nav-bar/INotificationWrapper';
+import { ICommitmentNotification } from '../../models/db/ICommitmentNotification';
+import { CommitmentNotificationEntry } from '../../models/db/CommitmentNotificationEntry';
 
 @Component({
   selector: 'app-commitment',
@@ -27,10 +31,10 @@ import {
     ]),
   ],
 })
-export class CommitmentComponent {
+export class CommitmentComponent implements OnInit {
   public loading: boolean = false;
 
-  private timeRange: DateTimeRangeSelectorModel | undefined;
+  public TimeRange: IDateRangeSelectorModel | undefined;
 
   public DisplayedColumns: string[] = ['team', 'duration'];
   public DisplayedColumnsWithExpand: string[] = [
@@ -47,11 +51,52 @@ export class CommitmentComponent {
 
   public TotalDuration: TimeSpan | undefined;
 
-  constructor(private backend: BackendConnectService) {}
+  constructor(
+    private backend: BackendConnectService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
 
-  public SelectedDateRange(range: DateTimeRangeSelectorModel): void {
+  ngOnInit(): void {
+    this.CheckAndGetCommitmentNotification();
+
+    this.router.events.subscribe((ev) => {
+      if (ev instanceof NavigationEnd) {
+        this.CheckAndGetCommitmentNotification();
+      }
+    });
+  }
+
+  private CheckAndGetCommitmentNotification(): void {
+    const notiType = this.route.snapshot.paramMap.get('notificationType');
+    const notification = this.route.snapshot.paramMap.get('notification');
+
+    if (
+      notiType &&
+      notification &&
+      <NotificationType>JSON.parse(notiType) === NotificationType.Commitment
+    ) {
+      const commitment = <ICommitmentNotification>JSON.parse(notification);
+
+      try {
+        const commitEntry = new CommitmentNotificationEntry(commitment);
+
+        const newTimeModel: IDateRangeSelectorModel = {
+          start: commitEntry.commitment.startTime,
+          end: commitEntry.commitment.endTime,
+        };
+
+        this.TimeRange = newTimeModel;
+
+        this.SelectedDateRange(this.TimeRange);
+      } catch (err) {
+        console.log('Error parsing availability entry from url');
+      }
+    }
+  }
+
+  public SelectedDateRange(range: IDateRangeSelectorModel): void {
     this.loading = true;
-    this.timeRange = range;
     this.backend.Commitment.GetUserCommitments(range).subscribe({
       next: (commitments) => {
         this.CreateSummaries(commitments, range.start, range.end);
@@ -61,7 +106,11 @@ export class CommitmentComponent {
     });
   }
 
-  private CreateSummaries(entries: CommitmentEntry[], start: Date, end: Date) {
+  private CreateSummaries(
+    entries: CommitmentEntry[],
+    rStart: Date,
+    rEnd: Date
+  ) {
     const uniqueTeams: { [key: string]: CommitmentEntry[] } = {};
 
     for (let entry of entries) {
@@ -73,9 +122,6 @@ export class CommitmentComponent {
       }
     }
 
-    const adjustStart: (s: Date) => Date = (s) => (s < start ? start : s);
-    const adjustEnd: (e: Date) => Date = (e) => (e > end ? end : e);
-
     this.Summaries = [];
 
     this.TotalDuration = new TimeSpan(0);
@@ -84,7 +130,7 @@ export class CommitmentComponent {
 
       for (let entry of v) {
         timeSpanTotal = timeSpanTotal.add(
-          this.GetTimeSpanDiff(entry.startTime, entry.endTime)
+          this.GetTimeSpanDiff(entry.startTime, entry.endTime, rStart, rEnd)
         );
       }
 
@@ -98,19 +144,22 @@ export class CommitmentComponent {
     }
   }
 
-  public AdjustStart(start: Date): Date {
-    const rStart = this.timeRange!.start;
+  public AdjustStart(start: Date, rStart: Date): Date {
     return start < rStart ? rStart : start;
   }
 
-  public AdjustEnd(end: Date): Date {
-    const rEnd = this.timeRange!.end;
+  public AdjustEnd(end: Date, rEnd: Date): Date {
     return rEnd > end ? end : rEnd;
   }
 
-  public GetTimeSpanDiff(start: Date, end: Date): TimeSpan {
-    const eStart = this.AdjustStart(start);
-    const eEnd = this.AdjustEnd(end);
+  public GetTimeSpanDiff(
+    start: Date,
+    end: Date,
+    rStart: Date,
+    rEnd: Date
+  ): TimeSpan {
+    const eStart = this.AdjustStart(start, rStart);
+    const eEnd = this.AdjustEnd(end, rEnd);
 
     const diff = new TimeSpan(eEnd.getTime() - eStart.getTime());
 

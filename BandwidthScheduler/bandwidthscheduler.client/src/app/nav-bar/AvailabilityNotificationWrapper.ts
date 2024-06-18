@@ -23,5 +23,5 @@ export class AvailabilityNotificationWrapper implements INotificationWrapper {
     this.avail.seen = value;
   }
 
-  constructor(private avail: AvailabilityNotificationEntry) {}
+  constructor(public avail: AvailabilityNotificationEntry) {}
 }

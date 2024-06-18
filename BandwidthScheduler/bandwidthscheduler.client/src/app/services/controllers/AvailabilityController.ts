@@ -2,8 +2,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AvailabilityEntry } from '../../models/db/AvailabilityEntry';
 import { IAvailabilityCommitmentResponse } from '../../models/IAvailabilityCommitmentResponse';
-import { DateTimeRangeSelectorModel } from '../../commonControls/date-time-range-selector/date-time-range-selector-model';
 import { JsonCustom } from '../../models/JsonCustom';
+import { IDateRangeSelectorModel } from '../../commonControls/date-range-selector/IDateRangeSelectorModel';
 
 export class AvailabilityController {
   private _baseUrl: string;
@@ -13,7 +13,7 @@ export class AvailabilityController {
   }
 
   public GetAllTimes(
-    range: DateTimeRangeSelectorModel
+    range: IDateRangeSelectorModel
   ): Observable<IAvailabilityCommitmentResponse> {
     const headers = new HttpHeaders()
       .set('start', JsonCustom.stringify(range.start))
@@ -24,7 +24,7 @@ export class AvailabilityController {
   }
 
   public PutAllTimes(
-    range: DateTimeRangeSelectorModel,
+    range: IDateRangeSelectorModel,
     times: AvailabilityEntry[]
   ): Observable<void> {
     return this.http.put<void>(this._baseUrl, {
